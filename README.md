@@ -61,13 +61,25 @@ We learn that Garfield is a help desk support guys with knowledge of Windows and
 
 ### What about scanning Cruel Computing for Open Ports?
 
-Of course our recon could also involve scanning Cruel Computing Internal Network for exposed servers with vulnerabilities, but it will not succeed since their FW is blocking everything inbound.
+We all know about scanning, how an intruder would find open port and vulnerabilities.
 
-From your RDP session to evil, try running the famous nmap -Pn 10.0.2.0/23 -p 80,443.
+Of course our recon could also involve scanning Cruel Computing Internal Network for exposed servers with vulnerabilities, but it will not succeed since their pricey FW is blocking everything inbound.
+
+But do not take our word for it, from your RDP session to evil, try running the famous nmap to scan the internal targets from the outside.
+
+From the terminal window choose a tab working directly with a local shell on evil, and paste
+
+`nmap -Pn 10.0.2.0/23 -Pn -p 80,443,445`
+
+Evil will here try reachability on ports 80,443 (web), 445 (microsoft stuff) on all 255 host on the internal and dmz subnets (10.0.2.0/24 and 10.0.3.0/24)
+
+After about 3 minutes you will get the result, nothing is open.
+
+Should we give up our mission?
 
 
 
-<copyable command so user can just click and paste to evil terminal>
+
 
 <picture scanning returns no open ports>
 
