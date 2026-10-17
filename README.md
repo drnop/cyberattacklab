@@ -11,9 +11,11 @@ The lab has been designed so you do not have to type long commands in a linux sh
 
 ## Your Mission
 
-You will assume the identity of an evil intruder. Your mission - if you choose to accept it - is to compromise an enterprise "Cruel Testing LTD ". This enterprise does animal testing on rats, something you oppose.
+You will assume the identity of an evil intruder. Your mission - should you choose to accept it - is to compromise an enterprise "Cruel Testing LTD ". This enterprise does animal testing on rats, something you very much oppose. Your compromise should be complete. You should gain persistent complete control of their infrastructure and you should be able to help your rat friends and set them free.
 
-If you accept the mission, start by browsing to http://www.crueltesting.com, to understand your enemy.
+If you accept the mission, start by browsing to http://www.crueltesting.com, to learn about your target.
+
+
 
 ## Lab Access and Topology
 
@@ -23,9 +25,10 @@ You will have your student number, (1,2,3....15) and a password provided by your
 
 Access the lab by going to http://guac<number>.felinecyber.com. So if your are group 8 it would be http://guac8.felinecyber.com.
 
-<picture showing guacamole login page>
+![Guacamole Login Page](assets/guac-login.png)
 
 Login with the username guacadmin and the password supplied by your proctor.
+You may be presented with a window asking your permission to copy/paste stuff. Click Accept
 
 You will now see different connection options, the ones you will use in this lab are evil-rdp and garfield-client. Right click both options to open a new tab in your browser so you have instant access to both. You should not need the other options for this lab.
 
