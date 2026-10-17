@@ -15,11 +15,17 @@ You will assume the identity of an evil intruder. Your mission - should you choo
 
 If you accept the mission, start by browsing to http://www.crueltesting.com, to learn about your target.
 
+![Cruel Testing](assets/cruelwebsite1.png)
 
 
 ## Lab Access and Topology
 
 All you need to access the lab is internet access with a browser (http). Chrome browser is recommended since it allows for easy copy/paste from instructions to lab.
+
+The lab topology is shown in the figure below. From your laptop you will access a guacamole server, from which you can access the lab environment. You will do almost all the work from evil, the attackers machine. But you will also have access to the windows 11 client machine to simulate a target user (garfield) opening files downloaded from the internet or inadvertantly helping the intruder (you).
+
+![Lab Topology](assets/guac-login.png)
+
 
 You will have your student number, (1,2,3....15) and a password provided by your proctor.
 
@@ -27,12 +33,15 @@ Access the lab by going to http://guac<number>.felinecyber.com. So if your are g
 
 ![Guacamole Login Page](assets/guac-login.png)
 
+Ignore the warnings that the session is not secure/encrypted and proceed.
+
 Login with the username guacadmin and the password supplied by your proctor.
 You may be presented with a window asking your permission to copy/paste stuff. Click Accept
 
-You will now see different connection options, the ones you will use in this lab are evil-rdp and garfield-client. Right click both options to open a new tab in your browser so you have instant access to both. You should not need the other options for this lab.
+You will now see different connection options, the ones you will use in this lab are evil-rdp and garfield-client. Right click both options to open a new tab in your browser so you have instant access to both. You should not need the other connections for this lab.
 
-<picture showing options from guacamole, rdp to evil etc >
+![Guacamole Login Page](rdp-connections.png)
+
 The lab topology is shown below. You are working from evil, an ubuntu linux with some attacking tools installed. You are trying to attck crueltesting.com, but they are protected by an expensive Firewall blocking everything inbound. On the inside of the firewall (as you will find out) there are different systems such as an Active Directory Infrastructure and a Kubernetes Infrastructure.
 
 <picture lab topology showing evil on external , fw , internal network with client and AD DC, dmz with kubernetes >
