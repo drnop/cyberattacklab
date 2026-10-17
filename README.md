@@ -11,7 +11,7 @@ The lab has been designed so you do not have to type long commands in a linux sh
 
 ## Your Mission
 
-You will assume the identity of an evil intruder. Your mission - should you choose to accept it - is to compromise an enterprise "Cruel Testing LTD ". This enterprise does animal testing on rats, something you very much oppose. Your compromise should be complete. You should gain persistent complete control of their infrastructure and you should be able to help your rat friends and set them free.
+You will assume the identity of an evil intruder. Your mission - should you choose to accept it - is to compromise an enterprise "Cruel Testing LTD ". As you will notice, the enterprise is run by cats. This enterprise does animal testing on rats, something you very much oppose. Your compromise of Cruel Testing  should be complete. You should gain persistent complete control of their infrastructure and you should be able to help your rat friends and set them free.
 
 If you accept the mission, start by browsing to http://www.crueltesting.com, to learn about your target.
 
@@ -24,8 +24,9 @@ All you need to access the lab is internet access with a browser (http). Chrome 
 
 The lab topology is shown in the figure below. From your laptop you will access a guacamole server, from which you can access the lab environment. You will do almost all the work from evil, the attackers machine. But you will also have access to the windows 11 client machine to simulate a target user (garfield) opening files downloaded from the internet or inadvertantly helping the intruder (you).
 
-![Lab Topology](assets/guac-login.png)
+Note that Cruel Computing has put a state-of-the-art Next Gen Firewall in place that blocks all incoming traffic from the external network (evil machine) to the internal network and the DMZ.
 
+![Lab Topology](assets/lab-topology.png)
 
 You will have your student number, (1,2,3....15) and a password provided by your proctor.
 
@@ -40,34 +41,32 @@ You may be presented with a window asking your permission to copy/paste stuff. C
 
 You will now see different connection options, the ones you will use in this lab are evil-rdp and garfield-client. Right click both options to open a new tab in your browser so you have instant access to both. You should not need the other connections for this lab.
 
-![Guacamole Login Page](rdp-connections.png)
+Click on your evil-rdp tab to get access to the attacking machine. Open a terminal window and type startlab as shown in the picture. This should open up a terminal window with different tabs that we will use  in this lab.
 
-The lab topology is shown below. You are working from evil, an ubuntu linux with some attacking tools installed. You are trying to attck crueltesting.com, but they are protected by an expensive Firewall blocking everything inbound. On the inside of the firewall (as you will find out) there are different systems such as an Active Directory Infrastructure and a Kubernetes Infrastructure.
-
-<picture lab topology showing evil on external , fw , internal network with client and AD DC, dmz with kubernetes >
-
-But the attacker (you) does not know this yet. But you will find out.
-
-Start the attack from evil by opening a terminal window and type starlab. This will open a window with different tabs. You will use these to perform the attacks.
-
+![Guacamole Login Page](assets/startlab.png)
 
 ## Reconnaisance
 
-The intruder's (Yours) first step is to find out about your target. From their website http://www.crueltesting.com you would already have learned about their disgusting business practices. But you would also have learned about some of their employees, like their CEO and founder (scratchy), their CISO (Schroedinger's) and their Help Desk Director (garfield).
+The intruder's (your) first step is to find out about your target. From their website http://www.crueltesting.com you would already have learned about their disgusting business practices. But you would also have learned about some of their employees, like their CEO and founder (scratchy), their CISO (Schroedinger's) and their Help Desk Director (garfield).
 
-Let's not waste time trying to hack Cruel Testing by their public website. It is a completely static webpage. Instead we try to hack the users. The most interesting user here is <i>garfield</i> since he is n IT and may have more privileges than even the senior CEO and CISO.
+![Cruel Testing Stakeholders ](assets/cruel-cats.png)
 
-Search for garfield cruel testing at linkedin, what do you find?
+Let's not waste time trying to hack Cruel Testing by their public website. It is a completely static webpage hosted on cloudflare (outside of the network topology we are working with). Instead we try to hack the users. The most interesting user here is <i>garfield</i> since he is in IT and may have more privileges than even the senior CEO and CISO.
 
-<picture garfield cruel computing at linkedin>
+You now use OSINT (Open Sources Intelligence) to discover more about the company and their users. A really good source for people in the IT industry is linkedin. After searching for garfield at cruel testing you find this information
+
+![Garfield Linkedin](assets/garfield-linkedin)
 
 We learn that Garfield is a help desk support guys with knowledge of Windows and Active Directory, so we can assume Cruel Computing use that. We also learn that he may be open to new job offers.
 
-### What scanning Cruel Computing for Open Ports?
+### What about scanning Cruel Computing for Open Ports?
 
 Of course our recon could also involve scanning Cruel Computing Internal Network for exposed servers with vulnerabilities, but it will not succeed since their FW is blocking everything inbound.
 
-From evil, Try by running nmap -Pn 10.0.2.0/23 from your attcking machine.
+From your RDP session to evil, try running the famous nmap -Pn 10.0.2.0/23 -p 80,443.
+
+
+
 <copyable command so user can just click and paste to evil terminal>
 
 <picture scanning returns no open ports>
