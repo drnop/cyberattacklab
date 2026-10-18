@@ -166,7 +166,7 @@ jobs
 
 You should see that sliver is waiting on port 443 for the mtls protocol.
 
-[!Sliver Jobs - waiting for connections](assets/sliver-jobs.png)
+![Sliver Jobs - waiting for connections](assets/sliver-jobs.png)
 
 Now, move to your RDP session to the client inside of the firewall.
 
@@ -176,11 +176,11 @@ On the desktop there is a file called stager that the
 
 Note that a real attacker may name the file a bit more stealthy, like chromeupdate.exe.
 
-[!Stager file](assets/clickingstager.png)
+![Stager file](assets/clickingstager.png)
 
 Back on evil, check the HTTP Server tab. You should see that there has been a connection from the stager to download the evil payload. Then go to the Sliver tab. You should see a new session.
 
-[!Initial Foothold](assets/afterclick.png)
+![Initial Foothold](assets/afterclick.png)
 
 You now have an initial foothold!
 
