@@ -49,6 +49,9 @@ startlab
 
 ![Guacamole Login Page](assets/startlab.png)
 
+Two of the tabs opened are for linux shell commands.
+We also have one command running a web server on evil and one for running sliver which is our Command and Control (C2) system.
+
 ## Reconnaisance
 
 The intruder's (your) first step is to find out about your target. From their website http://www.crueltesting.com you would already have learned about their disgusting business practices. But you would also have learned about some of their employees, like their CEO and founder (scratchy), their CISO (Schroedinger's) and their Help Desk Director (garfield).
@@ -74,7 +77,7 @@ But do not take our word for it, from your RDP session to evil, try running the 
 From the terminal window choose a tab working directly with a local shell on evil, and paste
 
 ```
-nmap -Pn 10.0.2.0/23 -Pn -p 80,443,445`
+nmap -Pn 10.0.2.0/23 -Pn -p 80,443,445
 ```
 Evil will here try reachability on ports 80,443 (web), 445 (microsoft stuff) on all 255 host on the internal and dmz subnets (10.0.2.0/24 and 10.0.3.0/24)
 
