@@ -83,7 +83,7 @@ Evil will here try reachability on ports 80,443 (web), 445 (microsoft stuff) on 
 
 You will get the result, nothing is open.
 
-![Nmap scan](assets/nmap .png)
+![Nmap scan](assets/nmap.png)
 
 Should we give up our mission?
 
