@@ -109,7 +109,7 @@ wget -r -p -E -k -np -nH -P /home/localadmin/LAB https://www.crueltesting.com
 ```
 Open up firefox and go to http://127.0.0.1, you will see a copy of our target website.
 
-![Cloned Website](firefoxfakewebsite.png)
+![Cloned Website](assets/firefoxfakewebsite.png)
 
 The next step for the intruder could be to register a similar domain name to crueltesting.com, (crueltestng.com, crueltesting-updates.com) and use that in the phishing email.
 
@@ -122,7 +122,7 @@ We learned from linkedin that Garfield may be interested in "new opportunities".
 Note that the attacker can use AI to help craft persuasive phishing emails (and make phone calls!!).
 
 ```
-sendemail -f trustmeheadhunber@felinejobs.com -s 10.0.3.6 -t garfield@crueltesting.com -u "Job oportunity! Free Tunafish: " -m "As we discussed on the phone, check attachment for details" -s 10.0.3.6
+sendemail -f trustme.headhunter@felinejobs.com -s 10.0.3.6 -t garfield@crueltesting.com -u "Job oportunity! Free Tunafish: " -m "As we discussed on the phone, check attachment for details" -s 10.0.3.6
 ```
 
 
