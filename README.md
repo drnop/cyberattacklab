@@ -43,6 +43,10 @@ You will now see different connection options, the ones you will use in this lab
 
 Click on your evil-rdp tab to get access to the attacking machine. Open a terminal window and type startlab as shown in the picture. This should open up a terminal window with different tabs that we will use  in this lab.
 
+```
+startlab
+```
+
 ![Guacamole Login Page](assets/startlab.png)
 
 ## Reconnaisance
@@ -55,7 +59,7 @@ Let's not waste time trying to hack Cruel Testing by their public website. It is
 
 You now use OSINT (Open Sources Intelligence) to discover more about the company and their users. A really good source for people in the IT industry is linkedin. After searching for garfield at cruel testing you find this information
 
-![Garfield Linkedin](assets/garfield-linkedin)
+![Garfield Linkedin](assets/garfield-linkedin.png)
 
 We learn that Garfield is a help desk support guys with knowledge of Windows and Active Directory, so we can assume Cruel Computing use that. We also learn that he may be open to new job offers.
 
@@ -69,8 +73,9 @@ But do not take our word for it, from your RDP session to evil, try running the 
 
 From the terminal window choose a tab working directly with a local shell on evil, and paste
 
-`nmap -Pn 10.0.2.0/23 -Pn -p 80,443,445`
-
+```
+nmap -Pn 10.0.2.0/23 -Pn -p 80,443,445`
+```
 Evil will here try reachability on ports 80,443 (web), 445 (microsoft stuff) on all 255 host on the internal and dmz subnets (10.0.2.0/24 and 10.0.3.0/24)
 
 After about 3 minutes you will get the result, nothing is open.
