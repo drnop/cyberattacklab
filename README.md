@@ -100,11 +100,32 @@ Even if we cannot go directly for our target website, we can attack the humans (
 
 Traditionally phishing is done by email (even though phishing via SMS, Social Media have increased a lot)
 
+Before we send ouor phishing email, let us show how an intruder could copy the legitimate website of Cruel Testing. This could be used in for phishing. The target user would be less reluctant to download sofware from, or logging in to (giving away his credentials) a website that looks familiar.
+
+Enter this command in the shell terminal, it will "clone" www.crueltesting.com to our local machine where we are running a webserver.
+
+```
+wget -r -p -E -k -np -nH -P /home/localadmin/LAB https://www.crueltesting.com
+```
+Open up firefox and go to http://127.0.0.1, you will see a copy of our target website.
+
+![Cloned Website](firefoxfakewebsite.png)
+
+The next step for the intruder could be to register a similar domain name to crueltesting.com, (crueltestng.com, crueltesting-updates.com) and use that in the phishing email.
+
+We will not bother with that in this lab, but it is important to understand this technique since it is easy to perform and commonly used.
+
 So let us send an email from the intruder to Garfield, the helpdesk guy.
 
-On your browser tab for evil
+We learned from linkedin that Garfield may be interested in "new opportunities". What if we pretend to be a headhunter? We could even call him first to discuss a job opportunity with fantastic benefits, flattering him on his deep helpdesk skills and ability to punish people who complain. Combining email phishing with a phone call could be very effective.
 
-<sendemail ... options to send email with phishing text to garfield from evl >
+Note that the attacker can use AI to help craft persuasive phishing emails (and make phone calls!!).
+
+```
+sendemail -f trustmeheadhunber@felinejobs.com -s 10.0.3.6 -t garfield@crueltesting.com -u "Job oportunity! Free Tunafish: " -m "As we discussed on the phone, check attachment for details" -s 10.0.3.6
+```
+
+
 
 On your c1-garfield machine, open the firefox or edge browser to see you have received the mail.
 
