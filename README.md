@@ -7,7 +7,7 @@ Suitable audience are CISOs, Security and Network Architects/Engineers.
 
 The lab is not about learning hacking tools or how to create malware bypassing defenses. Rather it explains how an intruder gains access and what the intruder can do. You will also learn that the intruder tries to be very stealthy, avoiding noisy exploitation, scanning and things that would create alarms from your cyber defense systems.
 
-The lab has been designed so you do not have to type long commands in a linux shell, instead you can copy and paste and focus on the why from the attackers perspective.
+The lab has been designed so you do not have to type long commands in a linux shell, instead you can copy and paste from the lab guide, allowing you to focus on general principles, the why and what the intruder.
 
 ## Your Mission
 
@@ -242,7 +242,7 @@ and then check what files there are
 ```
 ls
 ```
-![Todos](TODOs.png)
+![Todos](assets/TODOs.png)
 
 Now we can read the messages to Garfield from his manager.
 
@@ -258,13 +258,15 @@ cat mice-management-access.txt
 ```
 cat tomcat-patch.txt
 ```
-We learn that the he is supposed to reset a service account weekly, we learn about a fileshare with some interesting content (that garfield cannot access yet, because he is not a domainadmin) and we learn about a system "tomcat" that needs patching.
+![Garfield Work Ahead](assets/garfield-3-TODOS.png)
+
+We learn that the he is supposed to reset a service account weekly, we learn about a fileshare with some interesting content (that garfield cannot access yet, because he is not a domain admin) and we learn about a system "tomcat" that needs patching.
 
 
 
 ### Pivoting to to other sytems
 
-Now that we control one system, we ca actually reach any other system on the inside, in spite of the firewall blocking incoming traffic. This is shown in the picture below
+Now that we control one system, we can actually reach any other system on the inside, in spite of the firewall blocking incoming traffic. This is shown in the picture below
 
 <picture showing access to internal systems via outgoing session from compromised machine >
 
