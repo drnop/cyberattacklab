@@ -24,7 +24,7 @@ All you need to access the lab is internet access with a browser (http). Chrome 
 
 The lab topology is shown in the figure below. From your laptop you will access a guacamole server, from which you can access the lab environment. You will do almost all the work from evil, the attackers machine. But you will also have access to the windows 11 client machine to simulate a target user (garfield) opening files downloaded from the internet or inadvertantly helping the intruder (you).
 
-Note that Cruel Computing has put a state-of-the-art Next Gen Firewall in place that blocks all incoming traffic from the external network (evil machine) to the internal network and the DMZ.
+Note that Cruel Testing has put a state-of-the-art Next Gen Firewall in place that blocks all incoming traffic from the external network (evil machine) to the internal network and the DMZ.
 
 ![Lab Topology](assets/lab-topology.png)
 
@@ -64,13 +64,13 @@ You now use OSINT (Open Sources Intelligence) to discover more about the company
 
 ![Garfield Linkedin](assets/garfield-linkedin.png)
 
-We learn that Garfield is a help desk support guys with knowledge of Windows and Active Directory, so we can assume Cruel Computing use that. We also learn that he may be open to new job offers.
+We learn that Garfield is a help desk support guys with knowledge of Windows and Active Directory, so we can assume Cruel Testing use that. We also learn that he may be open to new job offers.
 
-### What about scanning Cruel Computing for Open Ports?
+### What about scanning Cruel testing for Open Ports?
 
 We all know about scanning, how an intruder would find open port and vulnerabilities.
 
-Of course our recon could also involve scanning Cruel Computing Internal Network for exposed servers with vulnerabilities, but it will not succeed since their pricey FW is blocking everything inbound.
+Of course our recon could also involve scanning Cruel Testing Internal Network for exposed servers with vulnerabilities, but it will not succeed since their pricey FW is blocking everything inbound.
 
 But do not take our word for it, from your RDP session to evil, try running the famous nmap to scan the internal targets from the outside.
 
@@ -125,43 +125,64 @@ Note that the attacker can use AI to help craft persuasive phishing emails (and 
 sendemail -f trustme.headhunter@felinejobs.com -s 10.0.3.6 -t garfield@crueltesting.com -u "Job oportunity! Free Tunafish: " -m "As we discussed on the phone, check attachment for details" -s 10.0.3.6
 ```
 
-
-
-On your c1-garfield machine, open the firefox or edge browser to see you have received the mail.
-
 ### Execution of Malware
 
-Typically, phishing will trick the user to download a file to execute, or follow link (where file may be downloaded and executed).
+Typically, phishing will trick the user to download a file to execute, or click on a link to a website (maybe one like the fake one we created above) where a file may be downloaded and executed.
 
-The defender (Cruel Testing) will have EDR in place to try to block this. But blocking malware is difficult.
+The defender will have EDR in place to try to block this. But blocking malware is difficult.
 
-Here we have the Cat and Mouse game! If you google EDR evation you will get lots of hits, here are some from 2026
-- link1 to be filled in
-- link2 to befilled in
+Here we have the "Cat and Mouse game"! If you search for EDR evasion you will get lots of hits, here are some results from youtube on Microsoft Defender Evasion from 2026.
 
-Note that shortly after the attacks above being published, the defenders typically have an update that blocks the attack.
+![MS Defender Bypass](assets/defenderbypass.png)
 
-This lab will assume that the intitial compromise has been succesful, for that reason, in the lab environment, windows defender has been disabled to produce a predictable lab.
+The Cat and Mouse game" also means that soon after a bypass of an EDR is published, the vendor will fix the problem, until the next bypass is published, and so on.
 
-Do not make the mistake believing Your EDR would block all attacks!
+We must also understand that the bad guys will not publish their methods.
 
-So now let us assume that the malware is executed.
+As security professionals we must therefore assume that the defense can be bypassed.  In this lab we assume the intruder (you) have managed to deliver a payload to the target victim that is executed.
+
+For that reason, in the lab environment, windows defender has been disabled to produce a reproducable lab.
+
 
 #### Information only (why malware detection by EDR  is not easy)
 
-.. discuss why it is difficult to distinguish a remote access tool from a legit managment tool in 2-3 sentences...
+Detecting malware by EDR is difficult. A typical malware delivered to a client may do things such as connecting to a command and control server on the internet, wait for commands and execute those commands (like reading, creating or deleting files, make network connections etc). However, these actions could also be legitimate actions taken by a legitimate management tool.
+
+Malware typically try to use living-of-the-land techniques, using legitimate and already installed binaries to do their work. This can be very difficult to detect.
+
 #### Information only (stagers)
 
-.. discuss why a small stager that can bypass EDR by downloading a dll
+A favourite method of intruders is to use stagers. This means that initial file that is executed on the target machine is a very small file  and lightweight (and therefore difficult to catch). This "stager" then opens up https:// connection to a site on the web where it retrieves the real malware which is executed in memory without touching the disk.
+
+![Stagers](assets/staging.png)
 
 ### Execute stager
 
-In this lab, we will not further dwell into EDR evasion. So use your tab to client and click on the file on the desktop stager.exe.
+First, we ensure that our attacking machine, evil, is prepared to receive incoming command and control (C2) fro the client. Click on the Sliver tab. Then type jobs.
+
+```
+jobs
+```
+
+You should see that sliver is waiting on port 443 for the mtls protocol.
+
+[!Sliver Jobs - waiting for connections](assets/sliver-jobs.png)
+
+Now, move to your RDP session to the client inside of the firewall.
+
+You may get a windows popup warnings about paging files, close those dialogue boxes.
+
+On the desktop there is a file called stager that the
 
 Note that a real attacker may name the file a bit more stealthy, like chromeupdate.exe.
 
+[!Stager file](assets/clickingstager.png)
 
-<picure of desktop on c1>
+Back on evil, check the HTTP Server tab. You should see that there has been a connection from the stager to download the evil payload. Then go to the Sliver tab. You should see a new session.
+
+[!Initial Foothold](assets/afterclick.png)
+
+You now have an initial foothold!
 
 ## Command and Control and Pivoting
 
@@ -310,7 +331,7 @@ proxychains4 smbclient //dc01.crueltesting.com/DomainAdminSecret -k -c 'ls'
 
 ## Pivoting to the Internal Kubernetes Infrastructure
 
-With the Active Directory infrastructure completely compromised, we now turn our efforts to the OT environment of Cruel computing.
+With the Active Directory infrastructure completely compromised, we now turn our efforts to the OT environment of Cruel Testing.
 
 We learned from DNS and from the documentes on garfields computer that there is a system "tomcat" that has a vulnerability.
 
