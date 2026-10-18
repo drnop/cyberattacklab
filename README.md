@@ -155,6 +155,7 @@ Malware typically try to use living-of-the-land techniques, using legitimate and
 A favourite method of intruders is to use stagers. This means that initial file that is executed on the target machine is a very small file  and lightweight (and therefore difficult to catch). This "stager" then opens up https:// connection to a site on the web where it retrieves the real malware which is executed in memory without touching the disk.
 
 ![Stagers](assets/staging.png)
+*Stagers*
 
 ### Execute stager
 
@@ -167,7 +168,7 @@ jobs
 You should see that sliver is waiting on port 443 for the mtls protocol.
 
 ![Sliver Jobs - waiting for connections](assets/sliver-jobs.png)
-
+*Sliver waiting for connections*
 Now, move to your RDP session to the client inside of the firewall.
 
 You may get a windows popup warnings about paging files, close those dialogue boxes.
@@ -177,11 +178,11 @@ On the desktop there is a file called stager that the
 Note that a real attacker may name the file a bit more stealthy, like chromeupdate.exe.
 
 ![Stager file](assets/clickingstager.png)
-
+*Clicking on the stager*
 Back on evil, check the HTTP Server tab. You should see that there has been a connection from the stager to download the evil payload. Then go to the Sliver tab. You should see a new session.
 
 ![Initial Foothold](assets/afterclick.png)
-
+*Attacking machine/evil: Initial foothold*
 You now have an initial foothold!
 
 ## Command and Control and Pivoting
