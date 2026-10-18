@@ -74,22 +74,18 @@ Of course our recon could also involve scanning Cruel Computing Internal Network
 
 But do not take our word for it, from your RDP session to evil, try running the famous nmap to scan the internal targets from the outside.
 
-From the terminal window choose a tab working directly with a local shell on evil, and paste
+From the terminal window choose a tab with a shell on evil, and paste
 
 ```
-nmap -Pn 10.0.2.0/23 -Pn -p 80,443,445
+nmap -Pn 10.0.2.10 10.0.3.6 -p 80,443,445
 ```
-Evil will here try reachability on ports 80,443 (web), 445 (microsoft stuff) on all 255 host on the internal and dmz subnets (10.0.2.0/24 and 10.0.3.0/24)
+Evil will here try reachability on ports 80,443 (web), 445 (microsoft stuff) on the domain controller and the kubernetes host behind the firewall.
 
-After about 3 minutes you will get the result, nothing is open.
+You will get the result, nothing is open.
+
+![Nmap scan](assets/nmap .png)
 
 Should we give up our mission?
-
-
-
-
-
-<picture scanning returns no open ports>
 
 But we do not need any open ports! We do not care that their Firewall blocks everything from the outside.
 We know some users and can guess their emails!
@@ -102,7 +98,7 @@ Even if we cannot go directly for our target website, we can attack the humans (
 
 ** note, it is much more difficult to trick a cat than a human
 
-Traditionally phishing is done by email (even though SMS, Social Media have increased a lot)
+Traditionally phishing is done by email (even though phishing via SMS, Social Media have increased a lot)
 
 So let us send an email from the intruder to Garfield, the helpdesk guy.
 
