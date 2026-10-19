@@ -268,7 +268,7 @@ We learn that the he is supposed to reset a service account weekly, we learn abo
 
 Now that we control one system, we can actually start a socks proxy allowing us to reach any other system on the inside, in spite of the firewall blocking incoming traffic. This is shown in the picture below.
 
-![Proxying incoming traffic via the outgoing C2 sliver session](socksproxy.png)
+![Proxying incoming traffic via the outgoing C2 sliver session](assets/socksproxy.png)
 
 First let us verify that the intruder cannot reach the internal system at 10.0.3.6 on port 80, in the shell command window (we already tried nmap before).
 Now execute a netcat command that tries to connect to port 80 on internal server 10.0.3.6
@@ -285,7 +285,7 @@ From sliver session we start the socks proxy:
 ```
 socks5 start
 ```
-![Starting socks proxy](socks5start.png)
+![Starting socks proxy](assets/socks5start.png)
 
 Now we can access internal systems via the socks proxy, we prove that by prepending proxychains
 in front of the previous netcat command
@@ -293,7 +293,7 @@ in front of the previous netcat command
 ```
 proxychains nc -w 3 -v 10.0.3.6 80
 ```
-![netcat works through socks proxy](nc-works.png)
+![netcat works through socks proxy](assetsnc-works.png)
 
 The command succeeds since we are now using the socks proxy!
 
@@ -309,7 +309,7 @@ You can now use Firefox to surf to internal URLs behing the firewall such as m2.
 ```
 http://m2.crueltesting.com
 ```
-![Mice Management](m2.png)
+![Mice Management](assets/m2.png)
 
 This is the application for Mice Control that was mentioned in one of the notes in Garfield's TODOs directory! Good to know that we can reach it even though it though access is blocked by the firewall!
 
