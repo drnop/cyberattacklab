@@ -293,7 +293,7 @@ in front of the previous netcat command
 ```
 proxychains nc -w 3 -v 10.0.3.6 80
 ```
-![netcat works through socks proxy](assetsnc-works.png)
+![netcat works through socks proxy](assets/nc-works.png)
 
 The command succeeds since we are now using the socks proxy!
 
