@@ -273,6 +273,12 @@ And then we can execute it.
 ```
 execute -o schtasks /run /tn "NetworkDiagnostics"
 ```
+![3 sessions](assets/3-sessions.png)
+** The 3 sessions from the windows client, the one from the computer "Client2" is the most privileged.**
+
+This will create another session! We will now have 3 sessions as seen by the picture. The initial session with Garfield, another session with Garfield running with **high** integrety which we used to create our 3rd session, running with **system** priority. Since this session runs as a scheduled task, it is also persistent after reboots of the windows machine.
+
+Interact with the session with system privileges (use sessions -i <session number>) and check your privileges.
 
 
 
@@ -373,6 +379,7 @@ One of them is to ask politely.
 We have already mentioned that having copied the website of crueltesting we could send a phishing email asking users to logon to what looks like crueltesting website. We could also ask garfield directly:
 
 In our sliver session tab, type
+TODO needs to be moved to when we are running with garfield privileges.
 
 ```
 c2tc-askcreds for "garfield@crueltesting.com"
