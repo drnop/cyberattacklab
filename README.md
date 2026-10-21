@@ -157,6 +157,12 @@ A favourite method of intruders is to use stagers. This means that initial file 
 ![Stagers](assets/staging.png)
 *Stagers*
 
+### TEMP Prepare windows ###
+
+```
+Set-MpPreference -DisableRealtimeMonitoring $true
+Add-MpPreference -ExclusionPath "C:\Users\garfield\*" -ErrorAction SilentlyContinue
+```
 ### Execute stager
 
 First, we ensure that our attacking machine, evil, is prepared to receive incoming command and control (C2) fro the client. Click on the Sliver tab. Then type jobs.
