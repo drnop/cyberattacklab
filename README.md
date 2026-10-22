@@ -51,6 +51,7 @@ startlab
 
 ![Starting the lab](assets/startlab.png)
 **Starting the lab**
+
 Two of the tabs opened are for linux shell commands.
 We also have one command running a web server on evil and one for running sliver which is our Command and Control (C2) system.
 
@@ -66,7 +67,7 @@ Let's not waste time trying to hack Cruel Testing by their public website. It is
 You now use OSINT (Open Sources Intelligence) to discover more about the company and their users. A really good source for people in the IT industry is linkedin. After searching for garfield at cruel testing you find this information
 
 ![Garfield Linkedin](assets/garfield-linkedin.png)
-**Garfield Linkein Page**
+**Garfield Linkedin Page**
 
 We learn that Garfield is a help desk support guys with knowledge of Windows and Active Directory, so we can assume Cruel Testing use that. We also learn that he may be open to new job offers.
 
@@ -104,7 +105,7 @@ Even if we cannot go directly for our target website, we can attack the humans (
 
 Traditionally phishing is done by email (even though phishing via SMS, Social Media have increased a lot)
 
-Before we send ouor phishing email, let us show how an intruder could copy the legitimate website of Cruel Testing. This could be used in for phishing. The target user would be less reluctant to download sofware from, or logging in to (giving away his credentials) a website that looks familiar.
+Before we send our phishing email, let us show how an intruder could copy the legitimate website of Cruel Testing. This could be used in for phishing. The target user would be less reluctant to download sofware from, or logging in to (giving away his credentials) a website that looks familiar.
 
 Enter this command in the shell terminal, it will "clone" www.crueltesting.com to our local machine where we are running a webserver.
 
@@ -203,16 +204,17 @@ Note that a real attacker may name the file differently.
 
 ![Stager file](assets/clickingstager.png)
 *Clicking on the stager*
-Back on evil, check the HTTP Server tab. You should see that there has been a connection from the stager to download the evil payload. Then go to the Sliver tab. You should see a new session.
+
 
 ## Command and Control and Pivoting
+
+Back on evil, check the HTTP Server tab. You should see that there has been a connection from the stager to download the evil payload. Then go to the Sliver tab. You should see a new session.
 
 On evil, check the sliver tab. You should now see a new session.
 
 ![Initial Foothold](assets/afterclick.png)
 *Attacking machine/evil: Initial foothold*
 You now have an initial foothold!
-
 
 In the sliver tab let us interact with the current session. The syntax is sessions -i <session name>.
 Your session should have the name JOYOUS_MORTGAGE, so the command would be
