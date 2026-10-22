@@ -145,7 +145,7 @@ Here we have the "Cat and Mouse game"! If you search for EDR evasion you will ge
 ![MS Defender Bypass](assets/defenderbypass.png)
 **Examples of published Windows Defender bypasses in 2026**
 
-The Cat and Mouse game" also means that soon after a bypass of an EDR is published, the vendor will fix the problem, until the next bypass is published, and so on.
+The "Cat and Mouse game" also means that soon after a bypass of an EDR is published, the vendor will fix the problem, until the next bypass is published, and so on.
 
 We must also understand that the bad guys will not publish their methods.
 
@@ -167,7 +167,7 @@ A favourite method of intruders is to use stagers. This means that initial file 
 ![Stagers](assets/staging.png)
 **Stagers**
 
-```
+
 ### Waiting for the C2 connection
 
 First, we ensure that our attacking machine, evil, is prepared to receive incoming command and control (C2) fro the client. Click on the Sliver tab. Then type jobs.
@@ -183,25 +183,36 @@ You should see that sliver is waiting on port 443 for the mtls protocol.
 
 ### Execute the stager from the client
 
-Now, move to your RDP session to the client inside of the firewall (cruel-c1(garfield) tab
+Now, move to your RDP session to the client inside of the firewall: use the cruel-c1(garfield) tab
 
 You will get windows popup warnings about paging files, close those dialogue boxes.
 
-On the desktop there is a file called stager that the
+![Close paging warnings](assets/cancel-paging.png)
+**Cancel paging warnings**
 
-Note that a real attacker may name the file a bit more stealthy, like chromeupdate.exe.
+Check the phishing email by launching the browser going to http://webmail.crueltesting.com.
+
+![Garfield reading phishing email](assets/garfield-email.png)
+**Garfield reads phishing email**
+
+Let us assume Garfield has already downloaded the attachment to his desktop.
+
+On the garfield desktop there is a file called stager.exe. If Garfield clicks it he will see all the fantastic benefits of the new job offer!!!
+
+Note that a real attacker may name the file differently.
 
 ![Stager file](assets/clickingstager.png)
 *Clicking on the stager*
 Back on evil, check the HTTP Server tab. You should see that there has been a connection from the stager to download the evil payload. Then go to the Sliver tab. You should see a new session.
 
+## Command and Control and Pivoting
+
+On evil, check the sliver tab. You should now see a new session.
+
 ![Initial Foothold](assets/afterclick.png)
 *Attacking machine/evil: Initial foothold*
 You now have an initial foothold!
 
-## Command and Control and Pivoting
-
-On evil, check the sliver tab. You should now see a new session.
 
 In the sliver tab let us interact with the current session. The syntax is sessions -i <session name>.
 Your session should have the name JOYOUS_MORTGAGE, so the command would be
