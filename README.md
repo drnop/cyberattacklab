@@ -128,6 +128,7 @@ Should we give up our mission?
 But we do not need any open ports! We do not care that their Firewall blocks everything from the outside.
 We know some users and can guess their emails!
 
+[⬆ Back to Top](#table-of-contents)
 ## Initial Compromise
 
 ### Phishing
