@@ -216,7 +216,7 @@ On evil, check the sliver tab. You should now see a new session.
 *Attacking machine/evil: Initial foothold*
 You now have an initial foothold!
 
-In the sliver tab let us interact with the current session. The syntax is sessions -i <session name>.
+In the sliver tab let us interact with the current session. The syntax is sessions -i <session name or number>.
 Your session should have the name JOYOUS_MORTGAGE, so the command would be
 ```
 sessions -i JOYOUS_MORTGAGE
@@ -244,9 +244,19 @@ sa-whoami
 ```
 
 ![sa-whoami](assets/sa-whoami.png)
+**sa-whoami, showing garfield groups.**
 
-This will display some interesting information, such as the Active Directory groups garfield belongs to. He belongs to one group (Helpdesk Support) that may be interesting. We can also see that he is a local administrator on his machine (not so suprising if he is in the helpdesk). However, the process we are running in is of medium integrity so we still do not have enough privileges to do nefarious stuff such as creating services. The reason the process is of medium integrity, rather than high, is because of Microsoft UAC (User Access Control). We will bypass that later.
+This will display some interesting information, such as the Active Directory groups garfield belongs to. He belongs to one group (Helpdesk Support) that may be interesting. We can also see that he is a local administrator on his machine (not so suprising if he is in the helpdesk).
 
+When checking his privileges with the sliver command getprivs, we see however that the we have measly privileges on the local machine.
+
+```
+getprivs
+```
+![Measly Privileges](assets/measly-privileges.png)
+**Limited privileges because of Windows UAC (User Access Control).
+
+This is because the process we are running in is of medium integrity so we still do not have enough privileges to do nefarious stuff such as creating services. The reason the process is of medium integrity, rather than high, is because of Microsoft UAC (User Access Control). We will bypass that later.
 
 We may want to learn about the Active Directory domain. We can use a built in windows command for this.
 The sliver execute command allows us to run built in windows commands.
@@ -255,12 +265,41 @@ The sliver execute command allows us to run built in windows commands.
 execute -o nltest /dclist:
 ```
 ![nltest](assets/nltest.png)
+**Active Directory Domain Information.
 
 We can see that the machine has joined the Active Directory domain via its domain controller dc01.crueltesting.com. Good to know?
 
-### Escalating our Privileges (Bypassing Windows UAC)
+### Getting Garfield AD Credentials
 
-e are now going to upload a file to Garfield's Desktop to help us bypass the UAC.
+As a first foothold we **may need** some credentials in the Active Directory domain crueltesting.com. There are several methods the attacker could use to get credentials from a domain user.
+
+One of them is to ask politely.
+
+We have already mentioned that having copied the website of crueltesting we could send a phishing email asking users to logon to what looks like crueltesting website. We could also ask garfield directly:
+
+In our sliver session tab, type
+
+```
+c2tc-askcreds for "garfield@crueltesting.com"
+```
+![Asking for credentials via sliver implant](assets/sliver-prompt-password.png)
+Now go back to your tab for the RDP session to client1 cruelcomputing. You will see that a window has opened asking garfield for his credentials.
+
+Type something in that window simulating garfield falling for the trap (garfields password is catsRCute2026!)
+
+![Garfield enters the password](assets/user-enters-password.png)
+
+Back in your sliver session window you will see what garfield typed.
+
+![Sliver sees password](assets/sliver-sees-password.png)
+
+Joy! We now hopefully Garfield's domain password.
+
+### Escalating our Privileges on the comproised client (Bypassing Windows UAC)
+
+As noted above, our privileges are limited (our implant is running with integrity level medium, we want it to be **high**!!!. This is all because of windows UAC.
+
+So we are now going to upload a file to Garfield's Desktop to help us bypass the UAC.
 This file is a PowerShell Script and the technique is described in the appendix.
 ```
 cat << 'EOF' > /home/localadmin/LAB/bypass.ps1
@@ -391,32 +430,7 @@ This is the application for Mice Control that was mentioned in one of the notes 
 
 Most enterprises rely on Microsoft Active Directory. For the intruder, compromising the Active Directory would typically allow him total control of the whole IT infrastructure, including applications, OT systems and more. These attacks can be extremely difficult to defend against since the intruder will abuse the way protocols work and are designed, rather than exploiting vulnerabilities that can be patched.
 
-### Getting Garfield AD Credentials
 
-As a first foothold we need some credentials in the Active Directory domain crueltesting.com. There are several methods the attacker could use to get credentials from a domain user.
-
-One of them is to ask politely.
-
-We have already mentioned that having copied the website of crueltesting we could send a phishing email asking users to logon to what looks like crueltesting website. We could also ask garfield directly:
-
-In our sliver session tab, type
-TODO needs to be moved to when we are running with garfield privileges.
-
-```
-c2tc-askcreds for "garfield@crueltesting.com"
-```
-![Asking for credentials via sliver implant](assets/sliver-prompt-password.png)
-Now go back to your tab for the RDP session to client1 cruelcomputing. You will see that a window has opened asking garfield for his credentials.
-
-Type something in that window simulating garfield falling for the trap (garfields password is catsRCute2026!)
-
-![Garfield enters the password](assets/user-enters-password.png)
-
-Back in your sliver session window you will see what garfield typed.
-
-![Sliver sees password](assets/sliver-sees-password.png)
-
-Joy! We now hopefully a domain password and can proceed with mapping the Active Directory with Bloodhound.
 ### Recon of AD with Bloodhound
 
 The active directory stores information about every user and service in the active directory domain. Users and services are typically assigned to groups, to which privileges can be assigned. The most privileged groups are Enterprise Admins and Domain Admins.
