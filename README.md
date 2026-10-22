@@ -16,6 +16,7 @@ You will assume the identity of an evil intruder. Your mission - should you choo
 If you accept the mission, start by browsing to http://www.crueltesting.com, to learn about your target.
 
 ![Cruel Testing](assets/cruelwebsite1.png)
+**Cruel Testing Public Website**
 
 
 ## Lab Access and Topology
@@ -27,12 +28,13 @@ The lab topology is shown in the figure below. From your laptop you will access 
 Note that Cruel Testing has put a state-of-the-art Next Gen Firewall in place that blocks all incoming traffic from the external network (evil machine) to the internal network and the DMZ.
 
 ![Lab Topology](assets/lab-topology.png)
-
+**Lab Topology**
 You will have your student number, (1,2,3....15) and a password provided by your proctor.
 
 Access the lab by going to http://guac<number>.felinecyber.com. So if your are group 8 it would be http://guac8.felinecyber.com.
 
 ![Guacamole Login Page](assets/guac-login.png)
+**Guacamole Login Page**
 
 Ignore the warnings that the session is not secure/encrypted and proceed.
 
@@ -47,8 +49,8 @@ Click on your evil-rdp tab to get access to the attacking machine. Open a termin
 startlab
 ```
 
-![Guacamole Login Page](assets/startlab.png)
-
+![Starting the lab](assets/startlab.png)
+**Starting the lab**
 Two of the tabs opened are for linux shell commands.
 We also have one command running a web server on evil and one for running sliver which is our Command and Control (C2) system.
 
@@ -57,12 +59,14 @@ We also have one command running a web server on evil and one for running sliver
 The intruder's (your) first step is to find out about your target. From their website http://www.crueltesting.com you would already have learned about their disgusting business practices. But you would also have learned about some of their employees, like their CEO and founder (scratchy), their CISO (Schroedinger's) and their Help Desk Director (garfield).
 
 ![Cruel Testing Stakeholders ](assets/cruel-cats.png)
+**Cruel Testing stakeholders**
 
 Let's not waste time trying to hack Cruel Testing by their public website. It is a completely static webpage hosted on cloudflare (outside of the network topology we are working with). Instead we try to hack the users. The most interesting user here is <i>garfield</i> since he is in IT and may have more privileges than even the senior CEO and CISO.
 
 You now use OSINT (Open Sources Intelligence) to discover more about the company and their users. A really good source for people in the IT industry is linkedin. After searching for garfield at cruel testing you find this information
 
 ![Garfield Linkedin](assets/garfield-linkedin.png)
+**Garfield Linkein Page**
 
 We learn that Garfield is a help desk support guys with knowledge of Windows and Active Directory, so we can assume Cruel Testing use that. We also learn that he may be open to new job offers.
 
@@ -81,10 +85,10 @@ nmap -Pn 10.0.2.10 10.0.3.6 -p 80,443,445
 ```
 Evil will here try reachability on ports 80,443 (web), 445 (microsoft stuff) on the domain controller and the kubernetes host behind the firewall.
 
-You will get the result, nothing is open.
+You will get the result, nothing is open (Actually port 25 is open, we wil use that for phishing)
 
 ![Nmap scan](assets/nmap.png)
-
+**nmap scan returns everything as filtered**
 Should we give up our mission?
 
 But we do not need any open ports! We do not care that their Firewall blocks everything from the outside.
@@ -96,7 +100,7 @@ We know some users and can guess their emails!
 
 Even if we cannot go directly for our target website, we can attack the humans (or cats in this case).
 
-** note, it is much more difficult to trick a cat than a human
+**Note, in real life it is much more difficult to trick a cat than a human**
 
 Traditionally phishing is done by email (even though phishing via SMS, Social Media have increased a lot)
 
@@ -110,6 +114,7 @@ wget -r -p -E -k -np -nH -P /home/localadmin/LAB https://www.crueltesting.com
 Open up firefox and go to http://127.0.0.1, you will see a copy of our target website.
 
 ![Cloned Website](assets/firefoxfakewebsite.png)
+**We cloned the website of Cruel Computing**
 
 The next step for the intruder could be to register a similar domain name to crueltesting.com, (crueltestng.com, crueltesting-updates.com) and use that in the phishing email.
 
@@ -121,9 +126,13 @@ We learned from linkedin that Garfield may be interested in "new opportunities".
 
 Note that the attacker can use AI to help craft persuasive phishing emails (and make phone calls!!).
 
+Fron a shell on evil, type
 ```
 sendemail -f trustme.headhunter@felinejobs.com -s 10.0.3.6 -t garfield@crueltesting.com -u "Job oportunity! Free Tunafish: " -m "As we discussed on the phone, check attachment for details" -s 10.0.3.6
 ```
+
+![Sending phishing email](assets/sendemail.png)
+**Sending phishing email**
 
 ### Execution of Malware
 
@@ -134,6 +143,7 @@ The defender will have EDR in place to try to block this. But blocking malware i
 Here we have the "Cat and Mouse game"! If you search for EDR evasion you will get lots of hits, here are some results from youtube on Microsoft Defender Evasion from 2026.
 
 ![MS Defender Bypass](assets/defenderbypass.png)
+**Examples of published Windows Defender bypasses in 2026**
 
 The Cat and Mouse game" also means that soon after a bypass of an EDR is published, the vendor will fix the problem, until the next bypass is published, and so on.
 
@@ -142,7 +152,7 @@ We must also understand that the bad guys will not publish their methods.
 As security professionals we must therefore assume that the defense can be bypassed.  In this lab we assume the intruder (you) have managed to deliver a payload to the target victim that is executed.
 
 For that reason, in the lab environment, windows defender has been disabled to produce a reproducable lab.
-
+(Otherwise the lab would need to be constantly updated with new bypasses)
 
 #### Information only (why malware detection by EDR  is not easy)
 
@@ -155,15 +165,10 @@ Malware typically try to use living-of-the-land techniques, using legitimate and
 A favourite method of intruders is to use stagers. This means that initial file that is executed on the target machine is a very small file  and lightweight (and therefore difficult to catch). This "stager" then opens up https:// connection to a site on the web where it retrieves the real malware which is executed in memory without touching the disk.
 
 ![Stagers](assets/staging.png)
-*Stagers*
-
-### TEMP Prepare windows ###
+**Stagers**
 
 ```
-Set-MpPreference -DisableRealtimeMonitoring $true
-Add-MpPreference -ExclusionPath "C:\Users\garfield\*" -ErrorAction SilentlyContinue
-```
-### Execute stager
+### Waiting for the C2 connection
 
 First, we ensure that our attacking machine, evil, is prepared to receive incoming command and control (C2) fro the client. Click on the Sliver tab. Then type jobs.
 
@@ -174,8 +179,11 @@ jobs
 You should see that sliver is waiting on port 443 for the mtls protocol.
 
 ![Sliver Jobs - waiting for connections](assets/sliver-jobs.png)
-*Sliver waiting for connections*
-Now, move to your RDP session to the client inside of the firewall.
+**Sliver waiting for connections**
+
+### Execute the stager from the client
+
+Now, move to your RDP session to the client inside of the firewall (cruel-c1(garfield) tab
 
 You will get windows popup warnings about paging files, close those dialogue boxes.
 
@@ -543,3 +551,50 @@ open firefox with proxy and check if you can  go to tomcat.crueltesting.com
 ## Lab Conclusion
 
 
+## Lab TODOs
+
+Ah, my apologies! You are completely right—JOYOUS_MORTGAGE is your active session name, but the command name in Sliver isn't tokens.
+
+Sliver uses the impersonate command (instead of Metasploit-style tokens) to find and steal a logged-in user's token.
+
+Here is how you do it directly inside your JOYOUS_MORTGAGE session:
+
+Impersonate Garfield directly by username:
+
+Plaintext
+impersonate garfield
+Run your installed Rubeus alias to Kerberoast:
+
+Plaintext
+rubeus kerberoast /outfile:hashes.kerberoast
+Revert back to SYSTEM when you're done:
+
+Plaintext
+rev2self
+You are 100% right. In a real-world engagement against a hardened environment with modern EDR and monitoring, dropping files like hashes.kerberoast directly onto the target's disk is a textbook OpSec (Operational Security) failure.
+
+Even if you have real-time Defender or an EDR temporarily blinded, file-creation telemetry (MFT records, USN journal entries, and file-write hooks) leaves permanent forensic artifacts that incident responders and threat hunters will spot immediately.
+
+Real attackers avoid touching the disk entirely through several techniques:
+
+1. Ditch the /outfile: Flag (Stream to Stdout)
+Rubeus doesn't actually need to write to a file. If you run rubeus kerberoast without the /outfile: argument, it prints the entire table of hashes directly to standard output (stdout):
+
+Plaintext
+rubeus kerberoast
+Because Sliver captures stdout and streams it back through your C2 channel in memory, the hashes appear right in your operator console window. Zero bytes are written to the target's disk. You can simply copy and paste the hash straight from your terminal into a local file on your Ubuntu machine.
+
+2. Fileless Execution via PowerShell (Invoke-Kerberoast)
+If you want to stay completely away from compiled C# binaries (.NET assemblies), you can use built-in memory-only PowerShell scripts:
+
+PowerShell
+# Executed entirely in-memory via a C2 PowerShell channel
+Import-Module .\PowerView.ps1
+Invoke-Kerberoast -OutputFormat Hashcat | Select-Object -ExpandProperty Hash
+This queries the directory and outputs the hash strings directly to the console stream without dropping tools or output files.
+
+3. Living off the Land (LotL)
+Advanced threat actors lean heavily on native Windows binaries (like setspn.exe or nltest) or native .NET classes (System.IdentityModel.Tokens.KerberosRequestorSecurityToken) to request tickets without introducing external offensive tooling at all.
+
+The Lab vs. Reality Tradeoff
+In a classroom or training lab, dropping files makes debugging and grading easy because students can visually verify artifacts. But in an operational assessment, forcing your tools to operate strictly in-memory and streaming stdout is the gold standard for staying under the radar.
