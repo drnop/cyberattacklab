@@ -199,7 +199,7 @@ Malware typically try to use living-of-the-land techniques, using legitimate and
 
 A favourite method of intruders is to use stagers. This means that initial file that is executed on the target machine is a very small file  and lightweight (and therefore difficult to catch). This "stager" then opens up https:// connection to a site on the web where it retrieves the real malware which is executed in memory without touching the disk.
 
-![Stagers](assets/staging.png)
+![Stagers](assets/stagers.png)
 **Stagers**
 
 
