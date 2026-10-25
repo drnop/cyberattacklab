@@ -7,6 +7,7 @@
   - [Your Mission](#your-mission)
   - [Lab Access and Topology](#lab-access-and-topology)
   - [Reconnaissance](#reconnaissance)
+    - [Open Source Intelligence (OSINT)](#open-source-intelligence-osint)
     - [What about scanning Cruel testing for Open Ports?](#what-about-scanning-cruel-testing-for-open-ports)
   - [Initial Compromise](#initial-compromise)
     - [Phishing](#phishing)
@@ -89,7 +90,13 @@ We also have one command running a web server on evil and one for running sliver
 
 ## Reconnaissance
 
-The intruder's (your) first step is to find out about your target. From their website http://www.crueltesting.com you would already have learned about their disgusting business practices. But you would also have learned about some of their employees, like their CEO and founder (scratchy), their CISO (Schroedinger's) and their Help Desk Director (garfield).
+The intruder's (your) first step is to find out about your target.
+
+### Open Source Intelligence (OSINT)
+
+Let's use OSINT (Open Source Intelligence). This includes using public information about your target such as public websites, google search and social networks. Linkedin can be very useful since employees may post details that can be extremely helpful to attackers.
+
+From their website http://www.crueltesting.com you would already have learned about their disgusting business practices. But you would also have learned about some of their employees, like their CEO and founder (scratchy), their CISO (Schroedinger's) and their Help Desk Director (garfield).
 
 ![Cruel Testing Stakeholders ](assets/cruel-cats.png)
 **Cruel Testing stakeholders**
@@ -352,7 +359,7 @@ In our sliver session tab, type
 c2tc-askcreds for "garfield@crueltesting.com"
 ```
 ![Asking for credentials via sliver implant](assets/sliver-prompt-password.png)
-Now go back to your tab for the RDP session to client1 cruelcomputing. You will see that a window has opened asking garfield for his credentials.
+Now go back to your tab for the RDP session to client1 crueltesting. You will see that a window has opened asking garfield for his credentials.
 
 Type something in that window simulating garfield falling for the trap (garfields password is catsRCute2026!)
 
@@ -706,7 +713,8 @@ Then you can free your mice!! At least the ones you own.
 
 ## Lab Conclusion
 
-We hope this lab has shown you the motivation, mindset, tools, techniques of the intruders.
+We hope this lab has shown you the motivation, mindset, tools, techniques of stealthy intruders.
+
 
 
 
