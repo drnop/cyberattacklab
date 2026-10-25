@@ -464,6 +464,7 @@ nc -w 3 -v 10.0.3.6 80
 The command will time out.
 
 ![netcat fails](assets/nc-fails.png)
+**netcat fails, timing out**
 
 From sliver session we start the socks proxy:
 
@@ -480,9 +481,10 @@ proxychains nc -w 3 -v 10.0.3.6 80
 ```
 ![netcat works through socks proxy](assets/nc-works.png)
 **netcat now works through the socks proxy!**
+
 The command succeeds since we are now using the socks proxy!
 
-We can also use a web browser directly! Start firefox from shell tab with
+We can also use a web browser directly! Start firefox from shell tab:
 
 ```
 firefox -P "ProxyProfile" --new-instance &
@@ -498,7 +500,7 @@ http://m2.crueltesting.com
 **Mice Management website, maybe something we should attack?**
 
 
-This is the application for Mice Control that was mentioned in one of the notes in Garfield's TODOs directory! Good to know that we can reach it even though it though access is blocked by the firewall!
+This is the application for Mice Control that was mentioned in one of the notes in Garfield's TODOs directory! Good to know that we can reach it even though network access is blocked by the firewall!
 
 
 ## Attacking the Active Directory Infrastructure
@@ -513,7 +515,7 @@ The ultimate target of the intruder is to compromise one of the most privileged 
 
 Armed with the username and password of garfield we cannow learn about the target active directory. Note that we the intruder can do the mapping even though our victim (garfield) is just a regular user. This is because the directory allows plenty of read access to all their users.
 
-We will use a popular tool - bloodhound - for our recon. Bloodhound reads info from the Active Directory, using a non-privileged account, and will show you attack paths how to escalatae your privilees!
+We will use a popular tool - bloodhound - for our recon. Bloodhound reads info from the Active Directory, using a non-privileged account, and will show you attack paths how to escalate your privilees!
 
 In a command shell window type (note that we learned about the garfield credentials and the name of the domain controller dc01.crueltesting.com above)
 
@@ -521,13 +523,13 @@ In a command shell window type (note that we learned about the garfield credenti
 proxychains4 bloodhound-python -u 'garfield' -p 'catsRCute2026!' -d 'crueltesting.com' -dc dc01.crueltesting.com -gc dc01.crueltesting.com -ns 10.0.2.10 --dns-tcp -c All --zip
 ```
 ![Bloodhound - gather info ](assets/bloodhound-grabbing-info.png)
+**Gathering information about Active Directory with bloodhound**
 
 This will use our relay function to contact the Active Directory Domain Controller to extract information.
 As a result a zip file is created on our evil machine.
 
 Next start the bloodhound server on our evil machine, in order to examine the results via a GUI.
-From a command shell window start the bloodhound gui using a docker container.
-
+From a command shell window start the bloodhound GUI using a docker container. (Containers are fantastic since they allow running applications without us having to install them, struggle with libraries etc!)
 ```
 docker compose -f /home/localadmin/tools/bloodhound/docker-compose.yml up -d
 ```
@@ -538,25 +540,28 @@ On evil, open firefox and go to
 ```
 htttp://127.0.0.1:8080
 ```
-The credentials (admin/xxxxxxx) should be pre-fileld so press ok.
+The credentials (admin/xxxxxxx) should be saved in browser so press ok.
 
 ![Bloodhound login](assets/bloodhound-login.png)
+**Logging into Bloodhound**
 
 Note: Typically we would now upload the zip file we created in the previous step. For this lab we will instead use a pre-created zip file that contains an interesting scenario. So you do not have to upload the zip file.
 
 When logged in, search for garfield@crueltesting.com. Expand the "Member Of" to the right and you will see the groups to which Garfield belongs. You will also see more information such as last password reset etc.
 
 ![Bloodhound Garfield](assets/bloodhound-garfield.png)
+**Checking out Garfield with bloodhound**
 
 We now want to know how we can go from controlling garfield to become domain admin! Go to the Pathfinding tab in Bloodhound, and enter garfield@crueltesting.com as source and domain admins@crueltesting.com as destination.
 
 You will now see a direct path for the attacker to gain total access to the Active Directory domain!
 
 ![Bloodhound Path](assets/bloodhound-path.png)
+**How to go from owning Garfield's account to become domain admin according to bloodhound**
 
 Garfield is a member of the Helpdesk Support group. This group has the right to do anything to the SVC_SQL service accounts, for example resetting the password! (Do you remember the file we read in Garfields TODOs directory). And to make it better, the SVC_SQL service is a member of the domain admins group! So Garfield could actually reset the password of the SVC_SQL service to one of his choice, and then login with this password and become a domain admin!
 
-This is a dangerous misconfiguration of the Active Directory of Cruel Testing. Unfortunately this type of misconfiguration is relatively comomon: Some IT admin installs a new service, has issues with it not working and then gives it excessive privileges and now it works. Help Desk admins do often have access to reset even privileged passwords.
+This is a dangerous misconfiguration of the Active Directory of Cruel Testing. Unfortunately this type of misconfiguration is relatively comon: Some IT admin installs a new service, has issues with it not working and then gives it excessive privileges and now it works. Help Desk admins do often have access to reset even privileged passwords.
 
 We will now move onto another method of escalating privileges in Active Directory, that does not require misconfigurations.
 
@@ -578,6 +583,7 @@ From a command shell type
 proxychains GetUserSPNs.py crueltesting.com/garfield:'catsRCute2026!' -dc-ip 10.0.2.10 -no-rc4 -request -outputfile hashes.kerberoast
 ```
 ![GetUserSPNs](/assets/GetUserSPNs.png)
+**Getting the Services we can kerberoast and their hashes**
 
 This should create a file hashes.kerberoast containing the hashes of the service svc-sql password.
 
