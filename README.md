@@ -11,9 +11,9 @@
     - [What about scanning Cruel testing for Open Ports?](#what-about-scanning-cruel-testing-for-open-ports)
   - [Initial Compromise](#initial-compromise)
     - [Phishing](#phishing)
-    - [Execution of Malware](#execution-of-malware)
-      - [Information only (why malware detection by EDR  is not easy)](#information-only-why-malware-detection-by-edr--is-not-easy)
-      - [Information only (stagers)](#information-only-stagers)
+    - [Execution of Malware (Information and Discussion)](#execution-of-malware-information-and-discussion)
+      - [Why malware detection by EDR  is not easy](#why-malware-detection-by-edr--is-not-easy)
+      - [Stagers](#stagers)
     - [Waiting for the C2 connection](#waiting-for-the-c2-connection)
     - [Execute the stager from the client](#execute-the-stager-from-the-client)
   - [Command and Control and Pivoting](#command-and-control-and-pivoting)
@@ -40,7 +40,7 @@ Suitable audience are CISOs, Security and Network Architects/Engineers.
 
 The lab is not about learning hacking tools or how to create malware bypassing defenses. Rather it explains how an intruder gains access and what the intruder can do. You will also learn that the intruder tries to be very stealthy, avoiding noisy exploitation, scanning and things that would create alarms from your cyber defense systems.
 
-The lab has been designed so you do not have to type long commands in a linux shell, instead you can copy and paste from the lab guide, allowing you to focus on general principles, the why and what the intruder.
+The lab has been designed so you do not have to type long commands in a linux shell, instead you can copy and paste from the lab guide, allowing you to focus on general principles.
 
 ## Your Mission
 
@@ -54,7 +54,7 @@ If you accept the mission, start by browsing to http://www.crueltesting.com, to 
 
 ## Lab Access and Topology
 
-All you need to access the lab is internet access with a browser (http). Chrome browser is recommended since it allows for easy copy/paste from instructions to lab.
+All you need to access the lab is internet access with a browser (http). Chrome browser is recommended since it allows for easy copy/paste from these instructions to the lab environment.
 
 The lab topology is shown in the figure below. From your laptop you will access a guacamole server, from which you can access the lab environment. You will do almost all the work from evil, the attackers machine. But you will also have access to the windows 11 client machine to simulate a target user (garfield) opening files downloaded from the internet or inadvertantly helping the intruder (you).
 
@@ -62,11 +62,13 @@ Note that Cruel Testing has put a state-of-the-art Next Gen Firewall in place th
 
 ![Lab Topology](assets/lab-topology.png)
 **Lab Topology**
+
 You will have your student number, (1,2,3....15) and a password provided by your proctor.
 
-Access the lab by going to http://guac<number>.felinecyber.com. So if your are group 8 it would be http://guac8.felinecyber.com.
+Access the lab by going to http://guac**number**.felinecyber.com. So if your are group 8 it would be http://guac8.felinecyber.com.
 
 ![Guacamole Login Page](assets/guac-login.png)
+
 **Guacamole Login Page**
 
 Ignore the warnings that the session is not secure/encrypted and proceed.
@@ -114,7 +116,7 @@ We learn that Garfield is a help desk support guys with knowledge of Windows and
 
 We all know about scanning, how an intruder would find open port and vulnerabilities.
 
-Of course our recon could also involve scanning Cruel Testing Internal Network for exposed servers with vulnerabilities, but it will not succeed since their pricey FW is blocking everything inbound.
+Of course our recon could also involve scanning Cruel Testing Internal Network for exposed servers with vulnerabilities, but it will not succeed since their pricey FW is blocking everything inbound (except incoming email)
 
 But do not take our word for it, from your RDP session to evil, try running the famous nmap to scan the internal targets from the outside.
 
@@ -125,13 +127,16 @@ nmap -Pn 10.0.2.10 10.0.3.6 -p 80,443,445
 ```
 Evil will here try reachability on ports 80,443 (web), 445 (microsoft stuff) on the domain controller and the kubernetes host behind the firewall.
 
-You will get the result, nothing is open (Actually port 25 is open, we wil use that for phishing)
+You will get the result, nothing is open (Actually port 25 is open, we will use that for phishing)
 
 ![Nmap scan](assets/nmap.png)
 **nmap scan returns everything as filtered**
+
 Should we give up our mission?
 
-But we do not need any open ports! We do not care that their Firewall blocks everything from the outside.
+*But we do not need any open ports!*
+
+ We do not care that their Firewall blocks everything from the outside.
 We know some users and can guess their emails!
 
 [⬆ Back to Top](#table-of-contents)
@@ -145,7 +150,7 @@ Even if we cannot go directly for our target website, we can attack the humans (
 
 Traditionally phishing is done by email (even though phishing via SMS, Social Media have increased a lot)
 
-Before we send our phishing email, let us show how an intruder could copy the legitimate website of Cruel Testing. This could be used in for phishing. The target user would be less reluctant to download sofware from, or logging in to (giving away his credentials) a website that looks familiar.
+Before we send our phishing email, let us show how an intruder could copy the legitimate website of Cruel Testing. This could be used in for phishing. The target user would be less reluctant to download sofware from, or logging in (giving away his credentials) to a website that looks familiar.
 
 Enter this command in the shell terminal, it will "clone" www.crueltesting.com to our local machine where we are running a webserver.
 
@@ -157,7 +162,7 @@ Open up firefox and go to http://127.0.0.1, you will see a copy of our target we
 ![Cloned Website](assets/firefoxfakewebsite.png)
 **We cloned the website of Cruel Testing**
 
-The next step for the intruder could be to register a similar domain name to crueltesting.com, (crueltesting.com, crueltesting-updates.com) and use that in the phishing email.
+The next step for the intruder could be to register a similar domain name to crueltesting.com, (crueltests.com, crueltesting-updates.com) and use that in the phishing email.
 
 We will not bother with that in this lab, but it is important to understand this technique since it is easy to perform and commonly used.
 
@@ -175,7 +180,7 @@ sendemail -f trustme.headhunter@felinejobs.com -s 10.0.3.6 -t garfield@crueltest
 ![Sending phishing email](assets/sendemail.png)
 **Sending phishing email**
 
-### Execution of Malware
+### Execution of Malware (Information and Discussion)
 
 Typically, phishing will trick the user to download a file to execute, or click on a link to a website (maybe one like the fake one we created above) where a file may be downloaded and executed.
 
@@ -195,13 +200,13 @@ As security professionals we must therefore assume that the defense can be bypas
 For that reason, in the lab environment, windows defender has been disabled to produce a reproducable lab.
 (Otherwise the lab would need to be constantly updated with new bypasses)
 
-#### Information only (why malware detection by EDR  is not easy)
+#### Why malware detection by EDR  is not easy
 
 Detecting malware by EDR is difficult. A typical malware delivered to a client may do things such as connecting to a command and control server on the internet, wait for commands and execute those commands (like reading, creating or deleting files, make network connections etc). However, these actions could also be legitimate actions taken by a legitimate management tool.
 
 Malware typically try to use living-of-the-land techniques, using legitimate and already installed binaries to do their work. This can be very difficult to detect.
 
-#### Information only (stagers)
+#### Stagers
 
 A favourite method of intruders is to use stagers. This means that initial file that is executed on the target machine is a very small file  and lightweight (and therefore difficult to catch). This "stager" then opens up https:// connection to a site on the web where it retrieves the real malware which is executed in memory without touching the disk.
 
@@ -211,7 +216,7 @@ A favourite method of intruders is to use stagers. This means that initial file 
 
 ### Waiting for the C2 connection
 
-First, we ensure that our attacking machine, evil, is prepared to receive incoming command and control (C2) fro the client. Click on the Sliver tab. Then type jobs.
+First, we ensure that our attacking machine, evil, is prepared to receive incoming command and control (C2) from the client. Click on the Sliver tab. Then type jobs.
 
 ```
 jobs
@@ -254,7 +259,7 @@ On evil, check the sliver tab. You should now see a new session.
 
 ![Initial Foothold](assets/afterclick.png)
 **Attacking machine/evil: Initial foothold**
-You now have an initial foothold!
+
 
 In the sliver tab let us interact with the current session. The syntax is sessions -i <session name or number>.
 Your session should have the name JOYOUS_MORTGAGE, so the command would be
@@ -262,7 +267,7 @@ Your session should have the name JOYOUS_MORTGAGE, so the command would be
 sessions -i JOYOUS_MORTGAGE
 ```
 
-Note: You may have several sessions to the same implant. To differentiate between them you have to use the session number, you can use tab completion e.g. sessions -i 7f<tab> if the session starts with 7f.
+Note: You may have several sessions to the same implant. To differentiate between them you have to use the session number, you can use tab completion e.g. sessions -i 7f followed by **tab** if the session starts with 7f.
 
 We now interact with the session, so we can type
 ```
@@ -297,7 +302,7 @@ When checking his privileges with the sliver command getprivs, we see however th
 getprivs
 ```
 ![Measly Privileges](assets/measly-privileges.png)
-**Limited privileges because of Windows UAC (User Access Control).
+**Limited privileges because of Windows UAC (User Access Control).**
 
 This is because the process we are running in is of medium integrity so we still do not have enough privileges to do nefarious stuff such as creating services. The reason the process is of medium integrity, rather than high, is because of Microsoft UAC (User Access Control). We will bypass that later.
 
@@ -314,7 +319,7 @@ We can see that the machine has joined the Active Directory domain via its domai
 
 ### Learning about Garfields not-so-private-anymore files.
 
-The intruder would typically use scripts to find files or emails with keywords.
+The intruder would typically use scripts to find files or emails searching for keywords.
 
 Here we will just access them directly via standard commands, change into garfield's TODOs directory that contains messages from his manager.
 ```
@@ -326,6 +331,7 @@ ls
 ```
 ![Todos](assets/TODOs.png)
 **Files in Garfield's private TODO folder**
+
 Now we can read the messages to Garfield from his manager.
 
 Type the following commands in your sliver session (the command cat shows the content of a file, showing feline domination)
@@ -341,6 +347,7 @@ cat mice-management-access.txt
 cat tomcat-patch.txt
 ```
 ![Garfield Work Orders](assets/garfield-3-TODOS.png)
+**Garfield's work orders**
 
 We learn that the he is supposed to reset a service account weekly, we learn about a fileshare with some interesting content (that garfield cannot access yet, because he is not a domain admin) and we learn about a system "tomcat" that needs patching.
 
@@ -359,17 +366,19 @@ In our sliver session tab, type
 c2tc-askcreds for "garfield@crueltesting.com"
 ```
 ![Asking for credentials via sliver implant](assets/sliver-prompt-password.png)
+**Asking Garfield for credentials via sliver**
+
 Now go back to your tab for the RDP session to client1 crueltesting. You will see that a window has opened asking garfield for his credentials.
 
 Type something in that window simulating garfield falling for the trap (garfields password is catsRCute2026!)
 
 ![Garfield enters the password](assets/user-enters-password.png)
-
+**Garfield enters his password**
 Back in your sliver session window you will see what garfield typed.
 
 ![Sliver sees password](assets/sliver-sees-password.png)
 
-Joy! We now hopefully Garfield's domain password.
+Joy! We now hopefully have Garfield's domain password.
 
 ### Escalating our Privileges on the compromised client (Bypassing Windows UAC)
 
@@ -391,7 +400,7 @@ EOF
 ![Create Bypass file](assets/creating-bypass-file.png)
 **Create powershell script to bypass UAC**
 
-From the sliver window, we can now upload this file
+From the sliver window, we can now upload this file to Garfield's machine.
 
 ```
 upload bypass.ps1
@@ -420,21 +429,31 @@ And then we can execute it.
 ```
 execute -o schtasks /run /tn "NetworkDiagnostics"
 ```
+
+This will create another session!
+Check with the
+```
+sessions
+```
+command.
+
 ![3 sessions](assets/3-sessions.png)
 **The 3 sessions from the windows client, the one from the computer "Client2" is the most privileged.**
 
-This will create another session!
 
-We will now have 3 sessions as seen by the picture. The initial session with Garfield, another session with Garfield running with **high** integrety which we used to create our 3rd session, running with **system** priority. Since this session runs as a scheduled task, it is also persistent after reboots of the windows machine.
+We will now have 3 sessions as seen by the picture. The initial session with Garfield, another session with Garfield running with **high** integrity which we used to create our 3rd session, running with **system** priority. Since this session runs as a scheduled task, it is also persistent after reboots of the windows machine.
 
-Interact with the session with system privileges (use sessions -i <session number>) and check your privileges.
+Interact with the session with system privileges (use sessions -i *session number*) and check your privileges.
 
 
 ### Pivoting to to other sytems
 
-Now that we control one system, we can actually start a socks proxy allowing us to reach any other system on the inside, in spite of the firewall blocking incoming traffic. This is shown in the picture below.
+Now that we control one system, we can start a socks proxy allowing us to reach any other system on the inside, in spite of the firewall blocking incoming traffic. This is shown in the picture below.
 
 ![Proxying incoming traffic via the outgoing C2 sliver session](assets/socksproxy.png)
+**Proxying incoming traffic via the outgoing Command and Control Connection**
+
+*Note: We could start the socks proxy even with measly privileges of the user without escalating privileges to SYSTEM. However, for lab purpose the socks proxy will be more stable now that we run it as a service under SYSTEM.*
 
 First let us verify that the intruder cannot reach the internal system at 10.0.3.6 on port 80, in the shell command window (we already tried nmap before).
 Now execute a netcat command that tries to connect to port 80 on internal server 10.0.3.6
