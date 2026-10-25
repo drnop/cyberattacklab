@@ -30,7 +30,7 @@
     - [Golden Tickets](#golden-tickets)
   - [Pivoting to the Internal Kubernetes Infrastructure](#pivoting-to-the-internal-kubernetes-infrastructure)
     - [Exploiting the vulnerable TOMCAT server](#exploiting-the-vulnerable-tomcat-server)
-  - [What about the mice we want to set free?](#what-about-the-mice-we-want-to-set-free)
+    - [What about the mice we want to set free?](#what-about-the-mice-we-want-to-set-free)
   - [Lab Conclusion](#lab-conclusion)
 
 ## Welcome!
@@ -695,14 +695,14 @@ Let's check our environment (in the shell with the netcat listener)
 env
 ```
 ![tomcat environment](assets/env.png)
-**Tomcat Environment
+**Tomcat Environment**
 
 We can see that the application is running in a kubernetes cluster. By default, we then have access to any other application in the kubernetes cluster.
 
 "Hacking Cloud Applications" is a separate lab by FelineCyber where you will learn attacking cloud environments such as Kubernetes, but also Azure, AWS environments.
 
 
-## What about the mice we want to set free?
+### What about the mice we want to set free?
 
 Never forget Our mission! Our mission was to set our buddies (rats) free!
 
