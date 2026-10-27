@@ -25,7 +25,6 @@
   - [Attacking the Active Directory Infrastructure](#attacking-the-active-directory-infrastructure)
     - [Recon of AD with Bloodhound](#recon-of-ad-with-bloodhound)
     - [Kerberoasting](#kerberoasting)
-    - [Kerberos Brief Intro](#kerberos-brief-intro)
     - [Getting and cracking the hashes of the privileged service account](#getting-and-cracking-the-hashes-of-the-privileged-service-account)
     - [Golden Tickets](#golden-tickets)
   - [Pivoting to the Internal Kubernetes Infrastructure](#pivoting-to-the-internal-kubernetes-infrastructure)
@@ -577,9 +576,8 @@ We will now move onto another method of escalating privileges in Active Director
 
 ### Kerberoasting
 
-### Kerberos Brief Intro
+The intruder may use Kerberoasting to escalate his privileges to that of a service (like svc-sql that we learned above belongs to the domain admins). For a description about Kerberoasting check Appendix C [Appendix C — Kerberoasting Overview](#appendix-c--kerberoasting-overview).
 
-(will add stuff here later, with pictures showing kerberos from the attackers perspective)
 
 ### Getting and cracking the hashes of the privileged service account
 
@@ -641,6 +639,8 @@ After some 30 seconds the password should be revealed. We have now cracked the p
 ### Golden Tickets
 
 With the credentials of the svc_sql - who is a member of domain admins - we can now grab the hashes for all users and services of the domain. But one hash is specifically interesting, that is the krbtgt hash, which is used to sign all Kerberos tickets. With this hash we can impersonate any user or service in the domain - even if the password of the user is reset!!!  This is like being able to print our own passports.
+
+This is shown in [Appendix D — Golden Tickets](#appendix-d--golden-tickets).
 
 Note! This is long term domination of the domain. The intruder will be able to impersonate any user, even if their passwords are changed, forever until the krbtgt is changed. However, krbtgt are not frequently changed. It requires resetting the kerberos service account password (twice!) and doing so will take down AD authentications for some time. So you can bet on this not being done at regular intervals unless there are significant proofs of compromoise.
 
@@ -799,6 +799,8 @@ In this lab, the UAC bypass leverages **`fodhelper.exe`** (Features on Demand He
 Active Directory (AD) stores information about domain principals (users, computers, and services) and manages permissions across the network. Permissions dictate actions such as creating accounts, resetting passwords, or accessing network shares. Permissions are typically assigned via **security groups**. The most privileged group is **Domain Admins**; compromising an account within this group grants complete control over the Active Directory domain.
 
 Active Directory implements Single Sign-On (SSO) using the **Kerberos** authentication protocol.
+
+For more info on the Intruder perspective of Active Directory, check Appendix B [Appendix B — Active Directory Fundamentals: The Intruder Perspective].
 
 ![Kerberos High-Level Overview](assets/kerberos-overview.png)
 *Figure: High-Level Kerberos Authentication Flow*
