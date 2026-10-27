@@ -35,9 +35,12 @@
   - [Appendix A — Technical Overview of the UAC Bypass](#appendix-a--technical-overview-of-the-uac-bypass)
   - [Appendix B — Active Directory Fundamentals: The Intruder Perspective](#appendix-b--active-directory-fundamentals-the-intruder-perspective)
     - [The Kerberos Authentication Flow](#the-kerberos-authentication-flow)
+  - [⬆ Back to Top](#-back-to-top)
   - [Appendix C — Kerberoasting Overview](#appendix-c--kerberoasting-overview)
+  - [⬆ Back to Top](#-back-to-top-1)
   - [Appendix D — Golden Tickets](#appendix-d--golden-tickets)
     - [Impact of a Golden Ticket](#impact-of-a-golden-ticket)
+  - [⬆ Back to Top](#-back-to-top-2)
 
 ## Welcome!
 
@@ -389,6 +392,9 @@ Joy! We now hopefully have Garfield's domain password.
 ### Escalating our Privileges on the compromised client (Bypassing Windows UAC)
 
 As noted above, our privileges are limited - our implant is running with integrity level medium, we want it to be **high**!!!. Unfortunately for us the integrity level is medium because of This is all because of Windows UAC (User Admission Control, which prompts an administrator if he really wants to do this when he tries to execute a potentially dangerous command).
+
+Some more technical details about this bypass of UAC is found in the appendix:
+[Appendix A — Technical Overview of the UAC Bypass](#appendix-a--technical-overview-of-the-uac-bypass)
 
 So we are now going to upload a file to Garfield's Desktop to help us bypass the UAC.
 This file is a PowerShell Script and the technique is described in the appendix A.
@@ -785,6 +791,9 @@ In this lab, the UAC bypass leverages **`fodhelper.exe`** (Features on Demand He
 2. **Auto-Elevation:** When `fodhelper.exe` is launched, it executes with high integrity without displaying a UAC prompt and reads the command specified in the hijacked `HKCU` registry structure.
 3. **Privilege Elevation:** This allows the attacker to execute payloads at high integrity, enabling post-exploitation activities such as creating persistent system tasks (`schtasks`).
 
+[⬆ Back to Top](#table-of-contents)
+
+
 ---
 
 ## Appendix B — Active Directory Fundamentals: The Intruder Perspective
@@ -804,6 +813,7 @@ Active Directory implements Single Sign-On (SSO) using the **Kerberos** authenti
 4. **TGS Issuance (TGS-REP):** The KDC decrypts the TGT using the `krbtgt` key to verify client identity. It then generates a TGS ticket containing the requesting user's identity and encrypts it using the **password hash of the target service account**.
 5. **Service Access (AP-REQ):** The client sends the TGS ticket directly to the target service. The service decrypts the ticket using its own password hash, verifies the user's identity (e.g., `garfield`), and grants access based on configured permissions.
 
+[⬆ Back to Top](#table-of-contents)
 ---
 
 ## Appendix C — Kerberoasting Overview
@@ -816,6 +826,7 @@ Active Directory implements Single Sign-On (SSO) using the **Kerberos** authenti
 
 If the service account uses a weak password, the attacker recovers the cleartext credentials, gaining all permissions assigned to that account.
 
+[⬆ Back to Top](#table-of-contents)
 ---
 
 ## Appendix D — Golden Tickets
@@ -832,6 +843,7 @@ The `krbtgt` hash is used by the KDC to sign and encrypt all TGTs in the domain.
 * **Persistence:** Golden Tickets remain valid even if the targeted user changes their password, as validation relies entirely on the signature of the `krbtgt` account key.
 * **Remediation Requirement:** Mitigating a Golden Ticket attack requires resetting the `krbtgt` account password **twice** across the entire domain to invalidate existing forged tickets.
 
+[⬆ Back to Top](#table-of-contents)
 ---
 
 
