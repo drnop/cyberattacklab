@@ -35,11 +35,9 @@
   - [Appendix A — Technical Overview of the UAC Bypass](#appendix-a--technical-overview-of-the-uac-bypass)
   - [Appendix B — Active Directory Fundamentals: The Intruder Perspective](#appendix-b--active-directory-fundamentals-the-intruder-perspective)
     - [The Kerberos Authentication Flow](#the-kerberos-authentication-flow)
-  - [⬆ Back to Top](#-back-to-top)
   - [Appendix C — Kerberoasting Overview](#appendix-c--kerberoasting-overview)
   - [Appendix D — Golden Tickets](#appendix-d--golden-tickets)
     - [Impact of a Golden Ticket](#impact-of-a-golden-ticket)
-  - [⬆ Back to Top](#-back-to-top-1)
 
 
 ## Welcome!
@@ -814,6 +812,7 @@ Active Directory implements Single Sign-On (SSO) using the **Kerberos** authenti
 5. **Service Access (AP-REQ):** The client sends the TGS ticket directly to the target service. The service decrypts the ticket using its own password hash, verifies the user's identity (e.g., `garfield`), and grants access based on configured permissions.
 
 <sup>[⬆ Back to Top](#table-of-contents)</sup>
+
 ---
 
 ## Appendix C — Kerberoasting Overview
@@ -845,6 +844,7 @@ The `krbtgt` hash is used by the KDC to sign and encrypt all TGTs in the domain.
 * **Remediation Requirement:** Mitigating a Golden Ticket attack requires resetting the `krbtgt` account password **twice** across the entire domain to invalidate existing forged tickets.
 
 <sup>[⬆ Back to Top](#table-of-contents)</sup>
+
 ---
 
 
