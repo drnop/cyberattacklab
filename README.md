@@ -516,6 +516,8 @@ This is the application for Mice Control that was mentioned in one of the notes 
 
 Most enterprises rely on Microsoft Active Directory. For the intruder, compromising the Active Directory would typically allow him total control of the whole IT infrastructure, including applications, OT systems and more. These attacks can be extremely difficult to defend against since the intruder will abuse the way protocols work and are designed, rather than exploiting vulnerabilities that can be patched.
 
+A very brief intro to the Active Directory from the Intruder perspective is found in Appendix B [Appendix B — Active Directory Fundamentals: The Intruder Perspective].
+
 
 ### Recon of AD with Bloodhound
 
@@ -800,7 +802,7 @@ Active Directory (AD) stores information about domain principals (users, compute
 
 Active Directory implements Single Sign-On (SSO) using the **Kerberos** authentication protocol.
 
-For more info on the Intruder perspective of Active Directory, check Appendix B [Appendix B — Active Directory Fundamentals: The Intruder Perspective].
+
 
 ![Kerberos High-Level Overview](assets/kerberos-overview.png)
 *Figure: High-Level Kerberos Authentication Flow*
