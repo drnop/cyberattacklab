@@ -32,6 +32,15 @@
     - [Exploiting the vulnerable TOMCAT server](#exploiting-the-vulnerable-tomcat-server)
     - [What about the mice we want to set free?](#what-about-the-mice-we-want-to-set-free)
   - [Lab Conclusion](#lab-conclusion)
+  - [Appendix A — Technical Overview of the UAC Bypass](#appendix-a--technical-overview-of-the-uac-bypass)
+  - [Appendix B — Active Directory Fundamentals: The Intruder Perspective](#appendix-b--active-directory-fundamentals-the-intruder-perspective)
+    - [The Kerberos Authentication Flow](#the-kerberos-authentication-flow)
+  - [Appendix C — Kerberoasting Overview](#appendix-c--kerberoasting-overview)
+  - [Appendix D — Golden Tickets](#appendix-d--golden-tickets)
+    - [Impact of a Golden Ticket](#impact-of-a-golden-ticket)
+  - [Appendix C — Kerberoasting Overview](#appendix-c--kerberoasting-overview-1)
+  - [Appendix D — Golden Tickets](#appendix-d--golden-tickets-1)
+    - [Impact of a Golden Ticket](#impact-of-a-golden-ticket-1)
 
 ## Welcome!
 
@@ -756,10 +765,105 @@ The mouse should now be free, ready to roam around in Cruel Testing lab environm
 
 We have accomplished our mission!
 
-
 ## Lab Conclusion
 
-We hope this lab has shown you the motivation, mindset, tools, techniques of stealthy intruders.
+We hope this lab has provided valuable insight into the motivations, mindsets, tools, and techniques of stealthy adversaries.
+
+As demonstrated throughout these modules, modern intruders strive for stealth:
+* **Passive Reconnaissance:** They avoid noisy port scans in favor of Open Source Intelligence (OSINT).
+* **Identity & Native Protocol Exploitation:** Rather than relying exclusively on zero-day exploits, they leverage human errors, social engineering, and native protocol behavior (such as Kerberos).
+* **Living-off-the-Land (LotL):** They utilize built-in operating system binaries and administrative utilities to accomplish their goals without dropping detectable malware.
+
+**Defensive Takeaway:**
+There is no single "silver bullet" defense. Endpoint Detection and Response (EDR) agents and Next-Generation Firewalls (NGFW) are vital controls, but they can be bypassed or tunneled through via reverse C2 channels and SOCKS5 proxies. Once inside, an adversary abusing Active Directory trust can elevate privileges to forge arbitrary Kerberos tickets (Golden Tickets) and gain persistent domain control.
+
+---
+
+## Appendix A — Technical Overview of the UAC Bypass
+
+User Account Control (UAC) ensures that standard tasks run without administrative privileges, even when executed by an administrative user. However, certain auto-elevating binaries in Windows can be leveraged to bypass UAC prompts.
+
+In this lab, the UAC bypass leverages **`fodhelper.exe`** (Features on Demand Helper):
+1. **Registry Modification:** The script modifies the `HKCU\Software\Classes\ms-settings\Shell\Open\command` registry key to point to our stager payload.
+2. **Auto-Elevation:** When `fodhelper.exe` is launched, it executes with high integrity without displaying a UAC prompt and reads the command specified in the hijacked `HKCU` registry structure.
+3. **Privilege Elevation:** This allows the attacker to execute payloads at high integrity, enabling post-exploitation activities such as creating persistent system tasks (`schtasks`).
+
+---
+
+## Appendix B — Active Directory Fundamentals: The Intruder Perspective
+
+Active Directory (AD) stores information about domain principals (users, computers, and services) and manages permissions across the network. Permissions dictate actions such as creating accounts, resetting passwords, or accessing network shares. Permissions are typically assigned via **security groups**. The most privileged group is **Domain Admins**; compromising an account within this group grants complete control over the Active Directory domain.
+
+Active Directory implements Single Sign-On (SSO) using the **Kerberos** authentication protocol.
+
+![Kerberos High-Level Overview](assets/kerberos-overview.png)
+*Figure: High-Level Kerberos Authentication Flow*
+
+### The Kerberos Authentication Flow
+
+1. **Authentication (AS-REQ / AS-REP):** A principal logs in and requests a Ticket Granting Ticket (TGT) from the Key Distribution Center (KDC) on the Domain Controller.
+2. **TGT Issuance:** The KDC issues a TGT encrypted with the domain's Kerberos service account secret (`krbtgt`). The client caches this TGT locally.
+3. **Service Ticket Request (TGS-REQ):** When the client needs to access a specific service (e.g., `svc-sql.crueltesting.com`), it presents its TGT to the KDC and requests a Ticket Granting Service (TGS) ticket for that Service Principal Name (SPN).
+4. **TGS Issuance (TGS-REP):** The KDC decrypts the TGT using the `krbtgt` key to verify client identity. It then generates a TGS ticket containing the requesting user's identity and encrypts it using the **password hash of the target service account**.
+5. **Service Access (AP-REQ):** The client sends the TGS ticket directly to the target service. The service decrypts the ticket using its own password hash, verifies the user's identity (e.g., `garfield`), and grants access based on configured permissions.
+
+---
+
+## Appendix C — Kerberoasting Overview
+
+**Kerberoasting** is a post-exploitation technique where an attacker with any valid, unprivileged domain user account requests a Service Ticket (TGS) for a service account that has a configured Service Principal Name (SPN).
+
+1. **Request TGS:** The attacker requests a TGS for target service accounts (e.g., `svc-sql.crueltesting.com`).
+2. **Offline Hash Extraction:** Because the TGS is encrypted using the target service account's password hash, the attacker extracts the ticket directly from memory or network traffic.
+3. **Offline Cracking:** The attacker performs password cracking (via wordlists or brute-force) offline on their own system. Because this occurs entirely offline, it generates no additional Active Directory logs.
+
+If the service account uses a weak password, the attacker recovers the cleartext credentials, gaining all permissions assigned to that account.
+
+---
+
+## Appendix D — Golden Tickets
+
+If an attacker compromises high-privilege credentials (such as Domain Admin access) or extracts secrets directly from a Domain Controller, they can retrieve the **`krbtgt` account password hash**.
+
+The `krbtgt` hash is used by the KDC to sign and encrypt all TGTs in the domain.
+
+![Golden Ticket](assets/goldenticket.png)
+*Figure: Forged Kerberos Golden Ticket Mechanism*
+
+### Impact of a Golden Ticket
+* **Complete Identity Impersonation:** Armed with the `krbtgt` hash, an attacker can forge their own valid TGTs (Golden Tickets) offline for **any user**—including non-existent administrative accounts—and grant themselves arbitrary group memberships.
+* **Persistence:** Golden Tickets remain valid even if the targeted user changes their password, as validation relies entirely on the signature of the `krbtgt` account key.
+* **Remediation Requirement:** Mitigating a Golden Ticket attack requires resetting the `krbtgt` account password **twice** across the entire domain to invalidate existing forged tickets.
+
+---
+## Appendix C — Kerberoasting Overview
+
+**Kerberoasting** is a post-exploitation technique where an attacker with any valid, unprivileged domain user account requests a Service Ticket (TGS) for a service account that has a configured Service Principal Name (SPN).
+
+1. **Request TGS:** The attacker requests a TGS for target service accounts (e.g., `svc-sql.crueltesting.com`).
+2. **Offline Hash Extraction:** Because the TGS is encrypted using the target service account's password hash, the attacker extracts the ticket directly from memory or network traffic.
+3. **Offline Cracking:** The attacker performs password cracking (via wordlists or brute-force) offline on their own system. Because this occurs entirely offline, it generates no additional Active Directory logs.
+
+If the service account uses a weak password, the attacker recovers the cleartext credentials, gaining all permissions assigned to that account.
+
+---
+
+## Appendix D — Golden Tickets
+
+If an attacker compromises high-privilege credentials (such as Domain Admin access) or extracts secrets directly from a Domain Controller, they can retrieve the **`krbtgt` account password hash**.
+
+The `krbtgt` hash is used by the KDC to sign and encrypt all TGTs in the domain.
+
+![Golden Ticket](assets/goldenticket.png)
+*Figure: Forged Kerberos Golden Ticket Mechanism*
+
+### Impact of a Golden Ticket
+* **Complete Identity Impersonation:** Armed with the `krbtgt` hash, an attacker can forge their own valid TGTs (Golden Tickets) offline for **any user**—including non-existent administrative accounts—and grant themselves arbitrary group memberships.
+* **Persistence:** Golden Tickets remain valid even if the targeted user changes their password, as validation relies entirely on the signature of the `krbtgt` account key.
+* **Remediation Requirement:** Mitigating a Golden Ticket attack requires resetting the `krbtgt` account password **twice** across the entire domain to invalidate existing forged tickets.
+
+---
+
 
 
 
