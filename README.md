@@ -38,9 +38,6 @@
   - [Appendix C — Kerberoasting Overview](#appendix-c--kerberoasting-overview)
   - [Appendix D — Golden Tickets](#appendix-d--golden-tickets)
     - [Impact of a Golden Ticket](#impact-of-a-golden-ticket)
-  - [Appendix C — Kerberoasting Overview](#appendix-c--kerberoasting-overview-1)
-  - [Appendix D — Golden Tickets](#appendix-d--golden-tickets-1)
-    - [Impact of a Golden Ticket](#impact-of-a-golden-ticket-1)
 
 ## Welcome!
 
@@ -836,33 +833,7 @@ The `krbtgt` hash is used by the KDC to sign and encrypt all TGTs in the domain.
 * **Remediation Requirement:** Mitigating a Golden Ticket attack requires resetting the `krbtgt` account password **twice** across the entire domain to invalidate existing forged tickets.
 
 ---
-## Appendix C — Kerberoasting Overview
 
-**Kerberoasting** is a post-exploitation technique where an attacker with any valid, unprivileged domain user account requests a Service Ticket (TGS) for a service account that has a configured Service Principal Name (SPN).
-
-1. **Request TGS:** The attacker requests a TGS for target service accounts (e.g., `svc-sql.crueltesting.com`).
-2. **Offline Hash Extraction:** Because the TGS is encrypted using the target service account's password hash, the attacker extracts the ticket directly from memory or network traffic.
-3. **Offline Cracking:** The attacker performs password cracking (via wordlists or brute-force) offline on their own system. Because this occurs entirely offline, it generates no additional Active Directory logs.
-
-If the service account uses a weak password, the attacker recovers the cleartext credentials, gaining all permissions assigned to that account.
-
----
-
-## Appendix D — Golden Tickets
-
-If an attacker compromises high-privilege credentials (such as Domain Admin access) or extracts secrets directly from a Domain Controller, they can retrieve the **`krbtgt` account password hash**.
-
-The `krbtgt` hash is used by the KDC to sign and encrypt all TGTs in the domain.
-
-![Golden Ticket](assets/goldenticket.png)
-*Figure: Forged Kerberos Golden Ticket Mechanism*
-
-### Impact of a Golden Ticket
-* **Complete Identity Impersonation:** Armed with the `krbtgt` hash, an attacker can forge their own valid TGTs (Golden Tickets) offline for **any user**—including non-existent administrative accounts—and grant themselves arbitrary group memberships.
-* **Persistence:** Golden Tickets remain valid even if the targeted user changes their password, as validation relies entirely on the signature of the `krbtgt` account key.
-* **Remediation Requirement:** Mitigating a Golden Ticket attack requires resetting the `krbtgt` account password **twice** across the entire domain to invalidate existing forged tickets.
-
----
 
 
 
