@@ -37,10 +37,10 @@
     - [The Kerberos Authentication Flow](#the-kerberos-authentication-flow)
   - [⬆ Back to Top](#-back-to-top)
   - [Appendix C — Kerberoasting Overview](#appendix-c--kerberoasting-overview)
-  - [⬆ Back to Top](#-back-to-top-1)
   - [Appendix D — Golden Tickets](#appendix-d--golden-tickets)
     - [Impact of a Golden Ticket](#impact-of-a-golden-ticket)
-  - [⬆ Back to Top](#-back-to-top-2)
+  - [⬆ Back to Top](#-back-to-top-1)
+
 
 ## Welcome!
 
@@ -791,7 +791,7 @@ In this lab, the UAC bypass leverages **`fodhelper.exe`** (Features on Demand He
 2. **Auto-Elevation:** When `fodhelper.exe` is launched, it executes with high integrity without displaying a UAC prompt and reads the command specified in the hijacked `HKCU` registry structure.
 3. **Privilege Elevation:** This allows the attacker to execute payloads at high integrity, enabling post-exploitation activities such as creating persistent system tasks (`schtasks`).
 
-[⬆ Back to Top](#table-of-contents)
+<sup>[⬆ Back to Top](#table-of-contents)</sup>
 
 
 ---
@@ -813,7 +813,7 @@ Active Directory implements Single Sign-On (SSO) using the **Kerberos** authenti
 4. **TGS Issuance (TGS-REP):** The KDC decrypts the TGT using the `krbtgt` key to verify client identity. It then generates a TGS ticket containing the requesting user's identity and encrypts it using the **password hash of the target service account**.
 5. **Service Access (AP-REQ):** The client sends the TGS ticket directly to the target service. The service decrypts the ticket using its own password hash, verifies the user's identity (e.g., `garfield`), and grants access based on configured permissions.
 
-[⬆ Back to Top](#table-of-contents)
+<sup>[⬆ Back to Top](#table-of-contents)</sup>
 ---
 
 ## Appendix C — Kerberoasting Overview
@@ -826,7 +826,8 @@ Active Directory implements Single Sign-On (SSO) using the **Kerberos** authenti
 
 If the service account uses a weak password, the attacker recovers the cleartext credentials, gaining all permissions assigned to that account.
 
-[⬆ Back to Top](#table-of-contents)
+<sup>[⬆ Back to Top](#table-of-contents)</sup>
+
 ---
 
 ## Appendix D — Golden Tickets
@@ -843,7 +844,7 @@ The `krbtgt` hash is used by the KDC to sign and encrypt all TGTs in the domain.
 * **Persistence:** Golden Tickets remain valid even if the targeted user changes their password, as validation relies entirely on the signature of the `krbtgt` account key.
 * **Remediation Requirement:** Mitigating a Golden Ticket attack requires resetting the `krbtgt` account password **twice** across the entire domain to invalidate existing forged tickets.
 
-[⬆ Back to Top](#table-of-contents)
+<sup>[⬆ Back to Top](#table-of-contents)</sup>
 ---
 
 
